@@ -4,14 +4,23 @@ const ctx = canvas.getContext('2d');
 const canvas2 = document.getElementById('canvas2')
 const ctx2 = canvas2.getContext('2d');
 
+const CANVAS_WIDTH = canvas.width / 2;
+const CANVAS_HEIGTH = canvas.height / 2;
+
 const win = document.getElementById('win');
 
 console.log(points)
+
 
 let startX = 0;
 let currentTransform = 0;
 let transform = 0;
 let winWidth = win.clientWidth;
+
+const countVisiblePoint = Math.round(points.length * winWidth / CANVAS_WIDTH);
+let visibleStartPoint = 0;
+let visibleEndPoint = countVisiblePoint;
+
 win.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
 });
@@ -22,8 +31,11 @@ win.addEventListener('touchmove', e => {
     transform = Math.max(0, currentTransform + diffX);
     transform = Math.min(transform, canvas.width / 2 - winWidth);
 
-    console.log(transform, diffX);
     win.style.transform = `translateX(${transform}px)`
+
+    visibleStartPoint = Math.round(points.length * transform / CANVAS_WIDTH);
+    visibleEndPoint = visibleStartPoint + countVisiblePoint;
+    console.log(visibleStartPoint, visibleEndPoint)
 });
 
 win.addEventListener('touchend', e => {
@@ -31,7 +43,6 @@ win.addEventListener('touchend', e => {
 });
 
 let i = 0;
-let j = 50;
 
 render();
 
@@ -43,8 +54,7 @@ const diffValue = maxValue - minValue;
 drawPlot(ctx2, points, maxValue, diffValue);
 
 function render() {
-    // j = (j + 0.5) % points.length;
-    const visiblePoints = points.slice(0, j);
+    const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
 
     const values = visiblePoints.map(x => x[1]);
 
@@ -52,7 +62,6 @@ function render() {
     const minValue = Math.min.apply(null, values);
 
     const diffValue = maxValue - minValue;
-    // console.log(maxValue, minValue, diffValue)
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -63,7 +72,6 @@ function render() {
 
 function drawYAxis(values) {
     const axis = calcYAxes(values);
-    // console.log(axis)
 
     ctx.lineWidth = 1;
     const step = canvas.height / axis.steps;
