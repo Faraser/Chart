@@ -35,7 +35,6 @@ win.addEventListener('touchmove', e => {
 
     visibleStartPoint = Math.round(points.length * transform / CANVAS_WIDTH);
     visibleEndPoint = visibleStartPoint + countVisiblePoint;
-    console.log(visibleStartPoint, visibleEndPoint)
 });
 
 win.addEventListener('touchend', e => {
@@ -51,7 +50,13 @@ const maxValue = Math.max.apply(null, values);
 const minValue = Math.min.apply(null, values);
 
 const diffValue = maxValue - minValue;
-drawPlot(ctx2, points, maxValue, diffValue);
+drawWinPlot(ctx2, points, maxValue, diffValue);
+
+
+var prevDiffValue;
+var animationStartTime = performance.now();
+var maxAnimationTime = 700;
+var isAnimate = false;
 
 function render() {
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
@@ -61,17 +66,47 @@ function render() {
     const maxValue = Math.max.apply(null, values);
     const minValue = Math.min.apply(null, values);
 
-    const diffValue = maxValue - minValue;
+    let diffValue = maxValue - minValue;
+    if (!prevDiffValue) prevDiffValue = diffValue;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawYAxis(values);
+    let axis = calcYAxes(values);
+    console.log(axis)
+    if (Math.abs(prevDiffValue - diffValue) > 0.2 && !isAnimate) {
+        console.log('should animate')
+        // prevDiffValue = diffValue;
+        isAnimate = true;
+        animationStartTime = performance.now();
+    }
+
+    if (isAnimate) {
+        const diffTime = performance.now() - animationStartTime;
+        const delta = Math.min(diffTime / maxAnimationTime, 1)
+        if (delta >= 1) {
+            isAnimate = false;
+            prevDiffValue = diffValue;
+        }
+
+        diffValue = lerp(prevDiffValue, diffValue, delta);
+        console.log('animate', diffValue);
+    }
+
+    drawYAxis(values, axis);
     drawPlot(ctx, visiblePoints, maxValue, diffValue);
     requestAnimationFrame(render)
 }
 
-function drawYAxis(values) {
-    const axis = calcYAxes(values);
+canvas.addEventListener('touchstart', () => {
+   axis.steps = axis.steps === 4 ? 5 : 4;
+   render();
+});
+
+function lerp(a, b, t) {
+    return a * (1 - t) + b * t;
+}
+
+function drawYAxis(values, axis) {
 
     ctx.lineWidth = 1;
     const step = canvas.height / axis.steps;
@@ -84,10 +119,38 @@ function drawYAxis(values) {
     }
 }
 
-function drawPlot(ctx, points, maxValue, diffValue) {
+function drawPlot(ctx, points, maxValue, dffValue) {
+    i += 0.02;
+    const canvas = ctx.canvas;
+    // const verticalScale = 100 * (Math.sin(i) + 1) / 2;
+    const verticalScale = 50;
+    // const diffValue = dffValue * (Math.sin(i) + 1);
+    const diffValue = dffValue;
+    // console.log(diffValue)
+
+    const horizontalStep = canvas.width / (points.length - 1);
+    const maxHeight = canvas.height - verticalScale;
+    const verticalOffset = (canvas.height - maxHeight) / 2;
+
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.moveTo(0, 0);
+    ctx.strokeStyle = '#8f7fff';
+    points.forEach((point, i) => {
+        const yCoord = ((maxValue - point[1]) / diffValue) * maxHeight + verticalOffset;
+        const xCoord = i * horizontalStep;
+        // console.log(xCoord, yCoord, (maxValue - point[1]) / diffValue)
+        ctx.lineTo(xCoord, yCoord);
+    });
+    ctx.stroke();
+}
+
+
+function drawWinPlot(ctx, points, maxValue, diffValue) {
     // i += 0.02;
     const canvas = ctx.canvas;
-    const verticalScale = 100 * (Math.sin(i) + 1) / 2;
+    // const verticalScale = 100 * (Math.sin(i) + 1) / 2;
+    const verticalScale = 50;
 
     const horizontalStep = canvas.width / (points.length - 1);
     const maxHeight = canvas.height - verticalScale;
