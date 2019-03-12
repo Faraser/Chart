@@ -20,12 +20,13 @@ console.log(points)
 
 let startX = 0;
 let currentTransform = 0;
-let transform = 0;
+let winTransform = 0;
 let winWidth = win.clientWidth;
 
 const countVisiblePoint = Math.round(points.length * winWidth / CANVAS_WIDTH);
 let visibleStartPoint = 0;
 let visibleEndPoint = countVisiblePoint;
+let transform = 0;
 
 win.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
@@ -39,15 +40,12 @@ win.addEventListener('touchmove', e => {
 
     win.style.transform = `translateX(${transform}px)`
 
-    visibleStartPoint = Math.round(points.length * transform / CANVAS_WIDTH);
-    visibleEndPoint = visibleStartPoint + countVisiblePoint;
+    winTransform = transform
 });
 
 win.addEventListener('touchend', e => {
     currentTransform = transform;
 });
-
-let i = 0;
 
 render();
 
@@ -71,6 +69,11 @@ var animState = {
 };
 
 function render() {
+    const visibleStart = points.length * transform / CANVAS_WIDTH;
+    const visibleStartPoint = Math.max(Math.ceil(visibleStart) - 1, 0);
+    const visibleEndPoint = visibleStartPoint + countVisiblePoint;
+    const horizontalOffset = visibleStart % 1;
+
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
 
     const values = visiblePoints.map(x => x[1]);
@@ -82,10 +85,9 @@ function render() {
 
     if (!prevAxis) prevAxis = axis;
 
-    // console.log(prevAxis.min !== axis.min, prevAxis.max !== axis.max, !isAnimate)
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
-        console.log('should animate')
+        console.log('should animate');
         animState = {
             startMin: prevAxis.min,
             startMax: prevAxis.max,
@@ -123,7 +125,7 @@ function render() {
     }
 
     // drawYAxis(values, axis);
-    drawPlot(ctx, visiblePoints, min, max);
+    drawPlot(ctx, visiblePoints, min, max, horizontalOffset);
     requestAnimationFrame(render)
 }
 
@@ -153,24 +155,29 @@ function drawYAxis(values, axis) {
     }
 }
 
-function drawPlot(ctx, points, min, max) {
-    i += 0.02;
+function drawPlot(ctx, points, min, max, horizontalOffset) {
     const canvas = ctx.canvas;
 
-    const horizontalStep = canvas.width / (points.length - 1);
+    // TODO: точно ли -2?
+    const horizontalStep = canvas.width / (points.length - 2);
     const maxHeight = canvas.height;
+
+    const startX = horizontalStep * horizontalOffset * -1;
+    const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
 
     ctx.beginPath();
     ctx.lineWidth = 4;
-    ctx.moveTo(0, 0);
+    ctx.moveTo(startX, startY);
+
     ctx.strokeStyle = '#8f7fff';
-    points.forEach((point, i) => {
-        // const yCoord = ((maxValue - point[1]) / diffValue) * maxHeight + verticalOffset;
+
+    for (let i = 1; i < points.length; i++) {
+        const point = points[i];
         const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
-        const xCoord = i * horizontalStep;
-        // console.log(min, max, point[1])
+        const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
-    });
+    }
+
     ctx.stroke();
 }
 
@@ -191,7 +198,6 @@ function drawWinPlot(ctx, points, maxValue, diffValue) {
     points.forEach((point, i) => {
         const yCoord = ((maxValue - point[1]) / diffValue) * maxHeight + verticalOffset;
         const xCoord = i * horizontalStep;
-        // console.log(xCoord, yCoord, (maxValue - point[1]) / diffValue)
         ctx.lineTo(xCoord, yCoord);
     });
     ctx.stroke();
