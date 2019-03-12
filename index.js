@@ -1,3 +1,7 @@
+window.oncontextmenu = function() {
+    return false;
+}
+
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
@@ -8,6 +12,8 @@ const CANVAS_WIDTH = canvas.width / 2;
 const CANVAS_HEIGTH = canvas.height / 2;
 
 const win = document.getElementById('win');
+const winRightButton = document.getElementById('win__right');
+const winLeftButton = document.getElementById('win__left');
 
 const points = [];
 const rawData = data[0].columns;
@@ -23,9 +29,6 @@ let currentTransform = 0;
 let winTransform = 0;
 let winWidth = win.clientWidth;
 
-const countVisiblePoint = Math.round(points.length * winWidth / CANVAS_WIDTH);
-let visibleStartPoint = 0;
-let visibleEndPoint = countVisiblePoint;
 let transform = 0;
 
 win.addEventListener('touchstart', e => {
@@ -37,6 +40,7 @@ win.addEventListener('touchmove', e => {
     const diffX = x - startX;
     transform = Math.max(0, currentTransform + diffX);
     transform = Math.min(transform, canvas.width / 2 - winWidth);
+    transform = Math.round(transform);
 
     win.style.transform = `translateX(${transform}px)`
 
@@ -44,6 +48,41 @@ win.addEventListener('touchmove', e => {
 });
 
 win.addEventListener('touchend', e => {
+    currentTransform = transform;
+});
+
+let startButtonX = 0;
+let prevWinWidth = winWidth;
+const onTouchStart = e => {
+    startButtonX = e.changedTouches[0].clientX;
+    prevWinWidth = winWidth;
+};
+winRightButton.addEventListener('touchstart', onTouchStart);
+winLeftButton.addEventListener('touchstart', onTouchStart);
+winRightButton.addEventListener('touchmove', e => {
+    e.stopPropagation();
+    let x = e.changedTouches[0].clientX;
+    const diffX = x - startButtonX;
+    const newWidth = Math.round(prevWinWidth + diffX);
+    win.style.width = newWidth + 'px';
+    winWidth = newWidth;
+});
+
+winLeftButton.addEventListener('touchmove', e => {
+    e.stopPropagation();
+    let x = e.changedTouches[0].clientX;
+    const diffX = startButtonX - x;
+
+    const newWidth = Math.round(prevWinWidth + diffX );
+    const newTransform = Math.round(currentTransform - diffX)
+
+    win.style.width = newWidth + 'px';
+    win.style.transform = `translateX(${newTransform}px)`
+    transform = newTransform;
+    winWidth = newWidth;
+});
+
+winLeftButton.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
@@ -69,6 +108,7 @@ var animState = {
 };
 
 function render() {
+    const countVisiblePoint = Math.round(points.length * winWidth / CANVAS_WIDTH);
     const visibleStart = points.length * transform / CANVAS_WIDTH;
     const visibleStartPoint = Math.max(Math.ceil(visibleStart) - 1, 0);
     const visibleEndPoint = visibleStartPoint + countVisiblePoint;
