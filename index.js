@@ -111,13 +111,13 @@ var animState = {
 };
 
 function render() {
-    const countVisiblePoint = Math.floor(points.length * winWidth / CANVAS_WIDTH);
-    const horizontalStepMultiplier = points.length * winWidth / CANVAS_WIDTH % 1;
-    console.log(countVisiblePoint, points.length * winWidth / CANVAS_WIDTH)
     const visibleStart = points.length * transform / CANVAS_WIDTH;
     const visibleStartPoint = Math.max(Math.ceil(visibleStart) - 1, 0);
-    const visibleEndPoint = visibleStartPoint + countVisiblePoint;
     const horizontalOffset = visibleStart % 1;
+
+    const visibleEnd = points.length * winWidth / CANVAS_WIDTH;
+    const visibleEndPoint = Math.min(visibleStartPoint + Math.floor(visibleEnd), points.length - 1);
+    const horizontalStepMultiplier = visibleEnd % 1;
 
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
 
@@ -203,12 +203,10 @@ function drawYAxis(values, axis) {
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
 
-    // TODO: точно ли -2?
     const horizontalPrevStep = canvas.width / (points.length - 3);
     const horizontalNextStep = canvas.width / (points.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
 
-    console.log(points.length, canvas.width, horizontalPrevStep, horizontalNextStep, horizontalStep)
     const maxHeight = canvas.height;
 
     const startX = horizontalStep * horizontalOffset * -1;
@@ -231,9 +229,7 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
 }
 
 function drawWinPlot(ctx, points, maxValue, diffValue) {
-    // i += 0.02;
     const canvas = ctx.canvas;
-    // const verticalScale = 100 * (Math.sin(i) + 1) / 2;
     const verticalScale = 50;
 
     const horizontalStep = canvas.width / (points.length - 1);
