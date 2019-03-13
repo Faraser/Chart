@@ -40,7 +40,7 @@ win.addEventListener('touchmove', e => {
     const diffX = x - startX;
     transform = Math.max(0, currentTransform + diffX);
     transform = Math.min(transform, canvas.width / 2 - winWidth);
-    transform = Math.round(transform);
+    // transform = Math.round(transform);
 
     win.style.transform = `translateX(${transform}px)`
 
@@ -73,13 +73,16 @@ winLeftButton.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = startButtonX - x;
 
-    const newWidth = Math.round(prevWinWidth + diffX );
-    const newTransform = Math.round(currentTransform - diffX)
+    // const newWidth = Math.round(prevWinWidth + diffX );
+    // const newTransform = Math.round(currentTransform - diffX)
+    const newWidth = prevWinWidth + diffX;
+    const newTransform = currentTransform - diffX
 
     win.style.width = newWidth + 'px';
     win.style.transform = `translateX(${newTransform}px)`
     transform = newTransform;
     winWidth = newWidth;
+    console.log(transform + winWidth)
 });
 
 winLeftButton.addEventListener('touchend', e => {
@@ -108,7 +111,9 @@ var animState = {
 };
 
 function render() {
-    const countVisiblePoint = Math.round(points.length * winWidth / CANVAS_WIDTH);
+    const countVisiblePoint = Math.floor(points.length * winWidth / CANVAS_WIDTH);
+    const horizontalStepMultiplier = points.length * winWidth / CANVAS_WIDTH % 1;
+    console.log(countVisiblePoint, points.length * winWidth / CANVAS_WIDTH)
     const visibleStart = points.length * transform / CANVAS_WIDTH;
     const visibleStartPoint = Math.max(Math.ceil(visibleStart) - 1, 0);
     const visibleEndPoint = visibleStartPoint + countVisiblePoint;
@@ -127,7 +132,7 @@ function render() {
 
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
-        console.log('should animate');
+        // console.log('should animate');
         animState = {
             startMin: prevAxis.min,
             startMax: prevAxis.max,
@@ -161,11 +166,11 @@ function render() {
             isAnimate = true;
         }
 
-        console.log('animate');
+        // console.log('animate');
     }
 
     // drawYAxis(values, axis);
-    drawPlot(ctx, visiblePoints, min, max, horizontalOffset);
+    drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
     requestAnimationFrame(render)
 }
 
@@ -195,11 +200,15 @@ function drawYAxis(values, axis) {
     }
 }
 
-function drawPlot(ctx, points, min, max, horizontalOffset) {
+function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
 
     // TODO: точно ли -2?
-    const horizontalStep = canvas.width / (points.length - 2);
+    const horizontalPrevStep = canvas.width / (points.length - 3);
+    const horizontalNextStep = canvas.width / (points.length - 2);
+    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
+
+    console.log(points.length, canvas.width, horizontalPrevStep, horizontalNextStep, horizontalStep)
     const maxHeight = canvas.height;
 
     const startX = horizontalStep * horizontalOffset * -1;
