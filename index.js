@@ -75,10 +75,21 @@ winLeftButton.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = startButtonX - x;
 
-    const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
-    const newTransform = clamp(0, maxWinWidth - minWinWidth, currentTransform - diffX);
+    let newWidth = prevWinWidth + diffX;
+    let newTransform = currentTransform - diffX;
 
-    if (newTransform === 0) return;
+    // Если упираемся в правую плашку
+    if (newWidth <= minWinWidth) {
+        newWidth = minWinWidth;
+        newTransform = Math.min(CANVAS_WIDTH - minWinWidth, newTransform)
+    }
+
+    // Если упираемся в левый угол
+    if (newTransform < 0) {
+        newWidth += newTransform;
+        console.log(newTransform, newWidth)
+        newTransform = 0;
+    }
 
     win.style.width = newWidth + 'px';
     win.style.transform = `translateX(${newTransform}px)`
