@@ -28,6 +28,8 @@ let startX = 0;
 let currentTransform = 0;
 let winTransform = 0;
 let winWidth = win.clientWidth;
+const minWinWidth = 20;
+const maxWinWidth = canvas.width / 2;
 
 let transform = 0;
 
@@ -63,7 +65,7 @@ winRightButton.addEventListener('touchmove', e => {
     e.stopPropagation();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startButtonX;
-    const newWidth = Math.round(prevWinWidth + diffX);
+    const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
     win.style.width = newWidth + 'px';
     winWidth = newWidth;
 });
@@ -73,16 +75,15 @@ winLeftButton.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = startButtonX - x;
 
-    // const newWidth = Math.round(prevWinWidth + diffX );
-    // const newTransform = Math.round(currentTransform - diffX)
-    const newWidth = prevWinWidth + diffX;
-    const newTransform = currentTransform - diffX
+    const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
+    const newTransform = clamp(0, maxWinWidth - minWinWidth, currentTransform - diffX);
+
+    if (newTransform === 0) return;
 
     win.style.width = newWidth + 'px';
     win.style.transform = `translateX(${newTransform}px)`
     transform = newTransform;
     winWidth = newWidth;
-    console.log(transform + winWidth)
 });
 
 winLeftButton.addEventListener('touchend', e => {
@@ -185,6 +186,10 @@ function lerp(a, b, t) {
 
 function reverseLerp(a, b, t) {
     return (t - a) / (b - a);
+}
+
+function clamp(min, max, value) {
+    return Math.min(Math.max(value, min), max);
 }
 
 function drawYAxis(values, axis) {
