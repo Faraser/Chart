@@ -128,10 +128,11 @@ function render() {
     const horizontalOffset = visibleStart % 1;
 
     const visibleEnd = points.length * winWidth / CANVAS_WIDTH;
-    const visibleEndPoint = Math.min(visibleStartPoint + Math.floor(visibleEnd), points.length - 1);
-    const horizontalStepMultiplier = visibleEnd % 1;
+    const visibleEndPoint = Math.min(visibleStartPoint + Math.floor(visibleEnd) + 1, points.length);
+    const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
+    // console.log(visiblePoints.length, visibleStartPoint, visibleEndPoint, transform, visibleStart, visibleEnd, horizontalStepMultiplier)
 
     const values = visiblePoints.map(x => x[1]);
 
@@ -186,10 +187,34 @@ function render() {
     requestAnimationFrame(render)
 }
 
-canvas.addEventListener('touchstart', () => {
-    prevAxis.steps = prevAxis.steps === 4 ? 5 : 4;
-    render();
-});
+function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
+    const canvas = ctx.canvas;
+
+    const horizontalPrevStep = canvas.width / (points.length - 2);
+    const horizontalNextStep = canvas.width / (points.length - 1);
+    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
+    // console.log(horizontalStep, horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
+
+    const maxHeight = canvas.height;
+
+    const startX = horizontalStep * horizontalOffset * -1;
+    const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
+
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.moveTo(startX, startY);
+
+    ctx.strokeStyle = '#8f7fff';
+
+    for (let i = 1; i < points.length; i++) {
+        const point = points[i];
+        const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
+        const xCoord = startX + i * horizontalStep;
+        ctx.lineTo(xCoord, yCoord);
+    }
+
+    ctx.stroke();
+}
 
 function lerp(a, b, t) {
     return a * (1 - t) + b * t;
@@ -216,33 +241,6 @@ function drawYAxis(values, axis) {
     }
 }
 
-function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
-    const canvas = ctx.canvas;
-
-    const horizontalPrevStep = canvas.width / (points.length - 3);
-    const horizontalNextStep = canvas.width / (points.length - 2);
-    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
-
-    const maxHeight = canvas.height;
-
-    const startX = horizontalStep * horizontalOffset * -1;
-    const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
-
-    ctx.beginPath();
-    ctx.lineWidth = 4;
-    ctx.moveTo(startX, startY);
-
-    ctx.strokeStyle = '#8f7fff';
-
-    for (let i = 1; i < points.length; i++) {
-        const point = points[i];
-        const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
-        const xCoord = startX + i * horizontalStep;
-        ctx.lineTo(xCoord, yCoord);
-    }
-
-    ctx.stroke();
-}
 
 function drawWinPlot(ctx, points, maxValue, diffValue) {
     const canvas = ctx.canvas;
