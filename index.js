@@ -134,8 +134,6 @@ function render() {
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
     // console.log(visiblePoints.length, visibleStartPoint, visibleEndPoint, transform, winWidth, visibleStart, visibleEnd)
 
-    console.log(visibleEnd)
-
     const values = visiblePoints.map(x => x[1]);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -147,7 +145,7 @@ function render() {
 
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
-        // console.log('should animate');
+        console.log('should animate');
         animState = {
             startMin: prevAxis.min,
             startMax: prevAxis.max,
@@ -184,9 +182,10 @@ function render() {
         // console.log('animate');
     }
 
-    // drawYAxis(values, axis);
+    // console.log(axis)
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
-    requestAnimationFrame(render)
+    drawYAxis(values, axis);
+    requestAnimationFrame(render);
 }
 
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
@@ -234,11 +233,15 @@ function clamp(min, max, value) {
 function drawYAxis(values, axis) {
 
     ctx.lineWidth = 1;
+    ctx.font = "24px sans-serif";
+    ctx.strokeStyle = '#d7d7db';
+    ctx.fillStyle = '#949498';
     const step = canvas.height / axis.steps;
     for (let i = 0; i < axis.steps; i++) {
-        const yCoord = step * i;
+        const yCoord = canvas.height - step * i;
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
+        ctx.fillText(axis.min + axis.stepValue * i, 20, yCoord - 10);
         ctx.lineTo(canvas.width, yCoord);
         ctx.stroke();
     }
@@ -268,41 +271,22 @@ function calcYAxes(valuesArray) {
     var calculateOrderOfMagnitude = function(val) {
             return Math.floor(Math.log(val) / Math.LN10);
         },
-        maxSteps = 5,
+        maxSteps = 6,
         maxValue = Math.max.apply(Math, valuesArray),
         minValue = Math.min.apply(Math, valuesArray),
 
         valueRange = Math.abs(maxValue - minValue),
         rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange),
 
-        // eslint-disable-next-line max-len
         graphMax = Math.ceil(maxValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
-        // eslint-disable-next-line max-len
         graphMin = Math.floor(minValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
         graphRange = graphMax - graphMin,
-        stepValue = Math.pow(10, rangeOrderOfMagnitude),
-        numberOfSteps = Math.round(graphRange / stepValue);
-
-    // Подбираем оптимальную величину шага
-    while ((numberOfSteps > maxSteps || (numberOfSteps * 2) < maxSteps)) {
-        if (numberOfSteps > maxSteps) {
-            stepValue *= 2;
-            numberOfSteps = Math.round(graphRange / stepValue);
-        } else {
-            stepValue /= 2;
-            numberOfSteps = Math.round(graphRange / stepValue);
-        }
-    }
-
-    // Если величина шага недостаточна, то увеличиваем кол-во шагов
-    while (graphMin + (numberOfSteps * stepValue) < graphMax) {
-        numberOfSteps++;
-    }
+        stepValue = Math.round(graphRange / maxSteps);
 
     return {
-        steps: numberOfSteps,
+        steps: maxSteps,
         stepValue: stepValue,
         min: graphMin,
-        max: graphMin + (numberOfSteps * stepValue)
+        max: graphMin + (maxSteps * stepValue)
     };
 }
