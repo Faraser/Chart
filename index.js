@@ -124,15 +124,17 @@ var animState = {
 
 function render() {
     const visibleStart = points.length * transform / CANVAS_WIDTH;
-    const visibleStartPoint = Math.max(Math.ceil(visibleStart) - 1, 0);
+    const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
     const horizontalOffset = visibleStart % 1;
 
     const visibleEnd = points.length * winWidth / CANVAS_WIDTH;
-    const visibleEndPoint = Math.min(visibleStartPoint + Math.floor(visibleEnd) + 1, points.length);
+    const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
     const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
-    // console.log(visiblePoints.length, visibleStartPoint, visibleEndPoint, transform, visibleStart, visibleEnd, horizontalStepMultiplier)
+    // console.log(visiblePoints.length, visibleStartPoint, visibleEndPoint, transform, winWidth, visibleStart, visibleEnd)
+
+    console.log(visibleEnd)
 
     const values = visiblePoints.map(x => x[1]);
 
@@ -159,7 +161,7 @@ function render() {
 
     if (isAnimate) {
         const diffTime = performance.now() - animationStartTime;
-        const delta = Math.min(diffTime / maxAnimationTime, 1)
+        const delta = Math.min(diffTime / maxAnimationTime, 1);
         if (delta >= 1) {
             isAnimate = false;
         }
@@ -190,10 +192,10 @@ function render() {
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
 
-    const horizontalPrevStep = canvas.width / (points.length - 2);
-    const horizontalNextStep = canvas.width / (points.length - 1);
+    // TODO решить проблему отступа и последней точки
+    const horizontalPrevStep = (canvas.width) / (points.length - 3);
+    const horizontalNextStep = (canvas.width) / (points.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
-    // console.log(horizontalStep, horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
 
     const maxHeight = canvas.height;
 
@@ -208,6 +210,7 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
 
     for (let i = 1; i < points.length; i++) {
         const point = points[i];
+        if (point[0] === 0) continue;
         const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
@@ -240,7 +243,6 @@ function drawYAxis(values, axis) {
         ctx.stroke();
     }
 }
-
 
 function drawWinPlot(ctx, points, maxValue, diffValue) {
     const canvas = ctx.canvas;
