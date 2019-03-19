@@ -100,8 +100,6 @@ winLeftButton.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
-render();
-
 const values = points.map(x => x[1]);
 const maxValue = Math.max.apply(null, values);
 const minValue = Math.min.apply(null, values);
@@ -114,14 +112,7 @@ var animationStartTime = performance.now();
 var maxAnimationTime = 400;
 var isAnimate = false;
 
-var animState = {
-    startMin: 0,
-    endMin: 0,
-    startMax: 0,
-    endMax: 0
-};
-
-var startAxis;
+var animState;
 
 function render() {
     const visibleStart = points.length * transform / CANVAS_WIDTH;
@@ -141,8 +132,18 @@ function render() {
     let axis = calcYAxes(values);
     let { min, max } = axis;
 
+    if (!animState) {
+        animState = {
+            startMin: axis.min,
+            startMax: axis.max,
+            endMin: axis.min,
+            endMax: axis.max,
+            currentAxis: axis,
+            preventAxis: axis,
+        }
+    }
+
     if (!prevAxis) prevAxis = axis;
-    if (!startAxis) startAxis = axis;
 
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
@@ -152,6 +153,8 @@ function render() {
             startMax: prevAxis.max,
             endMin: axis.min,
             endMax: axis.max,
+            currentAxis: axis,
+            preventAxis: prevAxis,
         };
         animationStartTime = performance.now();
         prevAxis = axis;
@@ -164,7 +167,6 @@ function render() {
         delta = Math.min(diffTime / maxAnimationTime, 1);
         if (delta >= 1) {
             isAnimate = false;
-            startAxis = axis;
         }
 
         min = lerp(animState.startMin, animState.endMin, delta);
@@ -175,7 +177,9 @@ function render() {
                 startMin: min,
                 startMax: max,
                 endMin: axis.min,
-                endMax: axis.max
+                endMax: axis.max,
+                currentAxis: axis,
+                preventAxis: prevAxis,
             };
             animationStartTime = performance.now();
             prevAxis = axis;
@@ -186,7 +190,7 @@ function render() {
     }
 
     // TODO: разбить рендер цифер и линий
-    drawYAxis(values, axis, startAxis, delta);
+    drawYAxis(values, animState, delta);
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
     requestAnimationFrame(render);
 }
@@ -237,23 +241,24 @@ function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
 }
 
-function drawYAxis(values, axis, prevAxis, delta) {
+function drawYAxis(values, animState, delta) {
     ctx.lineWidth = 1;
     ctx.font = "24px sans-serif";
-    const step = canvas.height / axis.steps;
+    const { currentAxis, preventAxis } = animState;
+    const step = canvas.height / currentAxis.steps;
 
     // Render new
     ctx.strokeStyle = `rgba(215,215,219, ${delta})`;
     ctx.fillStyle = `rgba(148,148,152, ${delta})`;
-    let stepMultiplier = (axis.max - axis.min) / (prevAxis.max - prevAxis.min);
+    let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
     stepMultiplier = lerp(stepMultiplier, 1, delta);
 
-    for (let i = 0; i < axis.steps; i++) {
+    for (let i = 0; i < currentAxis.steps; i++) {
         let yCoord = canvas.height - step * i * stepMultiplier;
 
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
-        ctx.fillText(axis.min + axis.stepValue * i, 20, yCoord - 10);
+        ctx.fillText(currentAxis.min + currentAxis.stepValue * i, 20, yCoord - 10);
         ctx.lineTo(canvas.width, yCoord);
         ctx.stroke();
     }
@@ -264,15 +269,15 @@ function drawYAxis(values, axis, prevAxis, delta) {
     ctx.fillStyle = `rgba(148,148,152, ${reverseDelta})`;
 
     // TODO эта штука должна сжиматься, а сейчас поднимается вверх
-    let reversedStepMultiplier = (prevAxis.max - prevAxis.min) / (axis.max - axis.min);
+    let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
     reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
 
-    for (let i = 0; i < prevAxis.steps; i++) {
+    for (let i = 0; i < preventAxis.steps; i++) {
         let yCoord = canvas.height - step * i * reversedStepMultiplier;
 
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
-        ctx.fillText(prevAxis.min + prevAxis.stepValue * i, 20, yCoord - 10);
+        ctx.fillText(preventAxis.min + preventAxis.stepValue * i, 20, yCoord - 10);
         ctx.lineTo(canvas.width, yCoord);
         ctx.stroke();
     }
@@ -321,3 +326,5 @@ function calcYAxes(valuesArray) {
         max: graphMin + (maxSteps * stepValue)
     };
 }
+
+render();
