@@ -10,6 +10,7 @@ const ctx2 = canvas2.getContext('2d');
 
 const CANVAS_WIDTH = canvas.width / 2;
 const CANVAS_HEIGTH = canvas.height / 2;
+const plotHeight = canvas.height - 60;
 
 const win = document.getElementById('win');
 const winRightButton = document.getElementById('win__right');
@@ -18,7 +19,7 @@ const winLeftButton = document.getElementById('win__left');
 const points = [];
 const rawData = data[0].columns;
 
-for (let i = 1; i < rawData[2].length; i++) {
+for (let i = 1; i < rawData[0].length; i++) {
     points.push([rawData[0][i], rawData[1][i]]);
 }
 
@@ -191,8 +192,36 @@ function render() {
 
     // TODO: разбить рендер цифер и линий
     drawYAxis(values, animState, delta);
+    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, horizontalOffset, visibleStart);
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
     requestAnimationFrame(render);
+}
+
+function drawXAxis(ctx, points, start, end, horizontalOffset, visibleStart) {
+    const prevStart = start;
+    const steps = 6;
+    horizontalOffset = (visibleStart % steps) / steps;
+    // start = roundByModuleUp(start, steps);
+    start = start - start % steps;
+    end = roundByModuleDown(end, steps);
+
+    const stepWidth = canvas.width / (steps);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const startX = stepWidth * horizontalOffset * -1;
+
+    const firstDate = new Date(points[start][0])
+    // console.log(prevStart, start, startX, firstDate.getDate(), visibleStart)
+
+    for (let i = 0; i <= steps; i++) {
+        const index = start + steps * i;
+        if (index > points.length) continue;
+        const date = new Date(points[index][0]);
+        const text = monthNames[date.getMonth()] + ' ' + date.getDate();
+        ctx.font = "24px sans-serif";
+        ctx.fillStyle = `rgba(148,148,152, 1)`;
+
+        ctx.fillText(text, startX + i * stepWidth, canvas.height - 10);
+    }
 }
 
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
@@ -203,7 +232,7 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
     const horizontalNextStep = (canvas.width) / (points.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
 
-    const maxHeight = canvas.height;
+    const maxHeight = plotHeight;
 
     const startX = horizontalStep * horizontalOffset * -1;
     const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
@@ -237,6 +266,16 @@ function remap(a, b, c, d, val) {
     return (d - c) * val / (b - a);
 }
 
+function roundByModuleUp(val, mod) {
+    const tmp = val % mod;
+    return tmp === 0 ? val : (val - tmp + mod)
+}
+
+function roundByModuleDown(val, mod) {
+    const tmp = val % mod;
+    return tmp === 0 ? val : (val - tmp)
+}
+
 function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
 }
@@ -245,7 +284,7 @@ function drawYAxis(values, animState, delta) {
     ctx.lineWidth = 1;
     ctx.font = "24px sans-serif";
     const { currentAxis, preventAxis } = animState;
-    const step = canvas.height / currentAxis.steps;
+    const step = plotHeight / currentAxis.steps;
 
     // Render new
     ctx.strokeStyle = `rgba(215,215,219, ${delta})`;
@@ -254,7 +293,7 @@ function drawYAxis(values, animState, delta) {
     stepMultiplier = lerp(stepMultiplier, 1, delta);
 
     for (let i = 0; i < currentAxis.steps; i++) {
-        let yCoord = canvas.height - step * i * stepMultiplier;
+        let yCoord = plotHeight - step * i * stepMultiplier;
 
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
@@ -273,7 +312,7 @@ function drawYAxis(values, animState, delta) {
     reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
 
     for (let i = 0; i < preventAxis.steps; i++) {
-        let yCoord = canvas.height - step * i * reversedStepMultiplier;
+        let yCoord = plotHeight - step * i * reversedStepMultiplier;
 
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
