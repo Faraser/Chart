@@ -112,7 +112,7 @@ drawWinPlot(ctx2, points, maxValue, diffValue);
 
 var prevAxis;
 var animationStartTime = performance.now();
-var maxAnimationTime = 200;
+var maxAnimationTime = 400;
 var isAnimate = false;
 
 var animState = {
@@ -121,6 +121,8 @@ var animState = {
     startMax: 0,
     endMax: 0
 };
+
+var prevPrevAxis;
 
 function render() {
     const visibleStart = points.length * transform / CANVAS_WIDTH;
@@ -142,6 +144,7 @@ function render() {
     let { min, max } = axis;
 
     if (!prevAxis) prevAxis = axis;
+    if (!prevPrevAxis) prevPrevAxis = axis;
 
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
@@ -157,11 +160,13 @@ function render() {
         isAnimate = true;
     }
 
+    let delta = 1;
     if (isAnimate) {
         const diffTime = performance.now() - animationStartTime;
-        const delta = Math.min(diffTime / maxAnimationTime, 1);
+        delta = Math.min(diffTime / maxAnimationTime, 1);
         if (delta >= 1) {
             isAnimate = false;
+            prevPrevAxis = axis;
         }
 
         min = lerp(animState.startMin, animState.endMin, delta);
@@ -183,8 +188,9 @@ function render() {
     }
 
     // console.log(axis)
+    // TODO: разбить рендер цифер и линий
+    drawYAxis(values, axis, prevPrevAxis, delta);
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
-    drawYAxis(values, axis);
     requestAnimationFrame(render);
 }
 
@@ -226,22 +232,53 @@ function reverseLerp(a, b, t) {
     return (t - a) / (b - a);
 }
 
+function remap(a, b, c, d, val) {
+    return(d - c) * val / (b - a);
+}
+
 function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
 }
 
-function drawYAxis(values, axis) {
+function drawYAxis(values, axis, prevAxis, delta) {
 
     ctx.lineWidth = 1;
     ctx.font = "24px sans-serif";
-    ctx.strokeStyle = '#d7d7db';
-    ctx.fillStyle = '#949498';
     const step = canvas.height / axis.steps;
+    // Render new
+    ctx.strokeStyle = `rgba(215,215,219, ${delta})`;
+    ctx.fillStyle = `rgba(148,148,152, ${delta})`;
+    let stepMultiplier = (axis.max - axis.min) / (prevAxis.max - prevAxis.min);
+    stepMultiplier = lerp(stepMultiplier, 1, delta);
+    // console.log(prevAxis.max, prevAxis.min, axis.max, axis.min)
     for (let i = 0; i < axis.steps; i++) {
-        const yCoord = canvas.height - step * i;
+        let yCoord = canvas.height - step * i * stepMultiplier;
+        // let yCoord = canvas.height - step * i;
+        // ctx.strokeStyle = 'red'
+
         ctx.beginPath();
         ctx.moveTo(0, yCoord);
         ctx.fillText(axis.min + axis.stepValue * i, 20, yCoord - 10);
+        ctx.lineTo(canvas.width, yCoord);
+        ctx.stroke();
+    }
+    // Render prev
+    let reverseDelta = 1 - delta;
+    ctx.strokeStyle = `rgba(215,215,219, ${reverseDelta})`;
+    ctx.fillStyle = `rgba(148,148,152, ${reverseDelta})`;
+
+    // TODO эта штука должна сжиматься, а сейчас поднимается вверх
+    let reversedStepMultiplier = (prevAxis.max - prevAxis.min) / (axis.max - axis.min);
+    reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
+    console.log(reversedStepMultiplier)
+
+    for (let i = 0; i < prevAxis.steps; i++) {
+        let yCoord = canvas.height - step * i * reversedStepMultiplier;
+
+        ctx.beginPath();
+        ctx.moveTo(0, yCoord);
+        ctx.fillText(prevAxis.min + prevAxis.stepValue * i, 20, yCoord - 10);
+        // ctx.fillText(yCoord, 20, yCoord - 10);
         ctx.lineTo(canvas.width, yCoord);
         ctx.stroke();
     }
