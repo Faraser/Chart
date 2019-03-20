@@ -190,37 +190,67 @@ function render() {
         // console.log('animate');
     }
 
+    // console.log(visiblePoints.length)
     // TODO: разбить рендер цифер и линий
     drawYAxis(values, animState, delta);
-    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, horizontalOffset, visibleStart);
+    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
     requestAnimationFrame(render);
 }
 
-function drawXAxis(ctx, points, start, end, horizontalOffset, visibleStart) {
+function calcXScale(pointsCount, maxSteps) {
+    let scale = 1;
+    while (scale < Math.floor(pointsCount / maxSteps)) {
+        scale = scale * 2;
+    }
+
+    if (scale > 1) {
+        scale = scale / 2;
+    }
+
+    return scale
+}
+
+var prevPointsPerStep;
+
+function drawXAxis(ctx, points, start, end, visibleStart, visibleEnd) {
     const prevStart = start;
     const steps = 6;
-    horizontalOffset = (visibleStart % steps) / steps;
-    // start = roundByModuleUp(start, steps);
-    start = start - start % steps;
-    end = roundByModuleDown(end, steps);
+    const visibleCount = end - start;
+    const pointsPerStep = calcXScale(visibleCount, steps);
+    const horizontalOffset = (visibleStart % pointsPerStep) / pointsPerStep;
+    const currentScaleThreshold = steps * (pointsPerStep + 1);
+    const nextScaleThreshold = steps * (pointsPerStep * 2 + 1);
+    let horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleCount);
+
+    // console.log(visibleEnd, horizontalStepMultiplier)
+
+    start = start - start % pointsPerStep;
+
+    // const firstDate = new Date(points[start][0])
+    // const secondDate = new Date(points[start + pointsPerStep][0])
+
+    // console.log(visibleCount, pointsPerStep, currentScaleThreshold, nextScaleThreshold, horizontalStepMultiplier);
+    // console.log(start, prevStart, firstDate.getDate(), secondDate.getDate())
 
     const stepWidth = canvas.width / (steps);
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const startX = stepWidth * horizontalOffset * -1;
 
-    const firstDate = new Date(points[start][0])
-    // console.log(prevStart, start, startX, firstDate.getDate(), visibleStart)
+    // console.log(winWidth, pointsPerStep)
 
-    for (let i = 0; i <= steps; i++) {
-        const index = start + steps * i;
-        if (index > points.length) continue;
+    horizontalStepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
+
+    for (let i = 0; i <= steps + 2; i++) {
+        const index = start + pointsPerStep * i;
+        if (index > points.length - 1) continue;
         const date = new Date(points[index][0]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         ctx.font = "24px sans-serif";
-        ctx.fillStyle = `rgba(148,148,152, 1)`;
+        ctx.fillStyle = `rgba(148,148,152, ${i % 2 === 1 ? horizontalStepMultiplier : 1})`;
 
-        ctx.fillText(text, startX + i * stepWidth, canvas.height - 10);
+        const xCoord = startX + i * stepWidth * horizontalStepMultiplier;
+        ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
 
@@ -249,6 +279,8 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
         const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
+        // Debugging output
+        // ctx.fillText(new Date(point[0]).getDate(), xCoord, yCoord - 20)
     }
 
     ctx.stroke();
@@ -278,6 +310,10 @@ function roundByModuleDown(val, mod) {
 
 function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
+}
+
+function nearestDegreeOf2(val) {
+    return Math.floor(Math.log(val) / Math.log(2));
 }
 
 function drawYAxis(values, animState, delta) {
