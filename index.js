@@ -213,20 +213,22 @@ function calcXScale(pointsCount, maxSteps) {
 
 var prevPointsPerStep;
 
-function drawXAxis(ctx, points, start, end, visibleStart, visibleEnd) {
+function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const prevStart = start;
     const steps = 6;
     const visibleCount = end - start;
-    const visibleDiff = visibleEnd - visibleStart;
+
     const pointsPerStep = calcXScale(visibleCount, steps);
+
     const horizontalOffset = (visibleStart % pointsPerStep) / pointsPerStep;
     const currentScaleThreshold = steps * (pointsPerStep + 1);
     const nextScaleThreshold = steps * (pointsPerStep * 2 + 1);
-    let horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleDiff);
+    const horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleLen);
 
     // console.log(visibleEnd, visibleCount, horizontalStepMultiplier)
 
     start = start - start % pointsPerStep;
+    // console.log(visibleStart, visibleLen);
 
     // const firstDate = new Date(points[start][0])
     // const secondDate = new Date(points[start + pointsPerStep][0])
