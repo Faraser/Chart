@@ -217,13 +217,14 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleEnd) {
     const prevStart = start;
     const steps = 6;
     const visibleCount = end - start;
+    const visibleDiff = visibleEnd - visibleStart;
     const pointsPerStep = calcXScale(visibleCount, steps);
     const horizontalOffset = (visibleStart % pointsPerStep) / pointsPerStep;
     const currentScaleThreshold = steps * (pointsPerStep + 1);
     const nextScaleThreshold = steps * (pointsPerStep * 2 + 1);
-    let horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleCount);
+    let horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleDiff);
 
-    // console.log(visibleEnd, horizontalStepMultiplier)
+    // console.log(visibleEnd, visibleCount, horizontalStepMultiplier)
 
     start = start - start % pointsPerStep;
 
@@ -239,17 +240,18 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleEnd) {
 
     // console.log(winWidth, pointsPerStep)
 
-    horizontalStepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
+    const stepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
 
-    for (let i = 0; i <= steps + 2; i++) {
+    for (let i = 0; i < steps * 2; i++) {
         const index = start + pointsPerStep * i;
         if (index > points.length - 1) continue;
         const date = new Date(points[index][0]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         ctx.font = "24px sans-serif";
-        ctx.fillStyle = `rgba(148,148,152, ${i % 2 === 1 ? horizontalStepMultiplier : 1})`;
+        const opacity = i % 2 === 1 ? horizontalStepMultiplier : 1;
+        ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
 
-        const xCoord = startX + i * stepWidth * horizontalStepMultiplier;
+        const xCoord = startX + i * stepWidth * stepMultiplier;
         ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
