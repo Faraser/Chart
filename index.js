@@ -220,29 +220,17 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
 
     const pointsPerStep = calcXScale(visibleCount, steps);
 
-    const horizontalOffset = (visibleStart % pointsPerStep) / pointsPerStep;
+    const horizontalOffset = (visibleStart % (pointsPerStep * 2)) / pointsPerStep;
     const currentScaleThreshold = steps * (pointsPerStep + 1);
     const nextScaleThreshold = steps * (pointsPerStep * 2 + 1);
     const horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleLen);
 
-    // console.log(visibleEnd, visibleCount, horizontalStepMultiplier)
-
-    start = start - start % pointsPerStep;
-    // console.log(visibleStart, visibleLen);
-
-    // const firstDate = new Date(points[start][0])
-    // const secondDate = new Date(points[start + pointsPerStep][0])
-
-    // console.log(visibleCount, pointsPerStep, currentScaleThreshold, nextScaleThreshold, horizontalStepMultiplier);
-    // console.log(start, prevStart, firstDate.getDate(), secondDate.getDate())
-
-    const stepWidth = canvas.width / (steps);
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const startX = stepWidth * horizontalOffset * -1;
-
-    // console.log(winWidth, pointsPerStep)
+    start = start - start % (pointsPerStep * 2);
 
     const stepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
+    const stepWidth = canvas.width / (steps) * stepMultiplier;
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const startX = stepWidth * horizontalOffset * -1;
 
     for (let i = 0; i < steps * 2; i++) {
         const index = start + pointsPerStep * i;
@@ -253,7 +241,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
         const opacity = i % 2 === 1 ? horizontalStepMultiplier : 1;
         ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
 
-        const xCoord = startX + i * stepWidth * stepMultiplier;
+        const xCoord = startX + i * stepWidth;
         ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
