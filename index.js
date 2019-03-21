@@ -272,7 +272,7 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
     ctx.beginPath();
     ctx.lineWidth = 4;
     ctx.moveTo(startX, startY);
-
+    ctx.lineJoin = 'round';
     ctx.strokeStyle = '#8f7fff';
 
     for (let i = 1; i < points.length; i++) {
