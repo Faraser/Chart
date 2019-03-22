@@ -273,9 +273,9 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
         // Debugging output
-        ctx.fillStyle = 'red';
-        ctx.fillText(String(new Date(point[0]).getDate()), xCoord, yCoord - 20)
-        i % 16 === 0 && ctx.fillText(String(new Date(point[0]).getDate()), xCoord, maxHeight)
+        // ctx.fillStyle = 'red';
+        // ctx.fillText(String(new Date(point[0]).getDate()), xCoord, yCoord - 20)
+        // i % 16 === 0 && ctx.fillText(String(new Date(point[0]).getDate()), xCoord, maxHeight)
     }
 
     ctx.stroke();
