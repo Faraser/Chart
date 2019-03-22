@@ -66,7 +66,7 @@ winRightButton.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = x - startButtonX;
     const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
-    win.style.width = newWidth + 'px';
+    win.style.width = Math.ceil(newWidth) + 'px';
     winWidth = newWidth;
 });
 
@@ -91,8 +91,8 @@ winLeftButton.addEventListener('touchmove', e => {
         newTransform = 0;
     }
 
-    win.style.width = newWidth + 'px';
-    win.style.transform = `translateX(${newTransform}px)`
+    win.style.width = Math.ceil(newWidth) + 'px';
+    win.style.transform = `translateX(${Math.ceil(newTransform)}px)`
     transform = newTransform;
     winWidth = newWidth;
 });
@@ -211,8 +211,6 @@ function calcXScale(pointsCount, maxSteps) {
     return scale
 }
 
-var prevPointsPerStep;
-
 function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const prevStart = start;
     const steps = 6;
@@ -220,20 +218,14 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
 
     const pointsPerStep = Math.max(calcXScale(visibleCount, steps), 2);
 
-    const horizontalOffset = (visibleStart % (pointsPerStep * 2)) / pointsPerStep;
     const currentScaleThreshold = steps * (pointsPerStep + 1);
     const nextScaleThreshold = steps * (pointsPerStep * 2 + 1);
-    const horizontalStepMultiplier = 1 - reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleLen);
+    let changeScaleProgress = reverseLerp(currentScaleThreshold, nextScaleThreshold, visibleLen);
 
     start = start - start % (pointsPerStep * 2);
 
-    const stepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
-    const stepWidth = canvas.width / (steps) * stepMultiplier;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    // const startX = stepWidth * horizontalOffset * -1;
     const startX = (start - prevStart) * gHorizontalStep + gStartX;
-    console.log(visibleStart, start, stepWidth, gHorizontalStep * pointsPerStep)
-
 
     for (let i = 0; i <= steps * 2; i++) {
         const index = start + pointsPerStep * i;
@@ -241,17 +233,17 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
         const date = new Date(points[index][0]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         ctx.font = "24px sans-serif";
-        const opacity = i % 2 === 1 ? horizontalStepMultiplier : 1;
+        const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
         ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
 
         const xCoord = startX + i * pointsPerStep * gHorizontalStep;
-        // const xCoord = startX + i * stepWidth - 40;
         ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
 
 var gHorizontalStep;
 var gStartX;
+
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
 
@@ -259,7 +251,6 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
     const horizontalPrevStep = (canvas.width) / (points.length - 3);
     const horizontalNextStep = (canvas.width) / (points.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
-
 
     const maxHeight = plotHeight;
 
@@ -405,5 +396,10 @@ function calcYAxes(valuesArray) {
         max: graphMin + (maxSteps * stepValue)
     };
 }
+
+transform = CANVAS_WIDTH - winWidth;
+winTransform = transform;
+currentTransform = transform;
+win.style.transform = `translateX(${transform}px)`;
 
 render();
