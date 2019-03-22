@@ -193,8 +193,8 @@ function render() {
     // console.log(visiblePoints.length)
     // TODO: разбить рендер цифер и линий
     drawYAxis(values, animState, delta);
-    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
     drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
+    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
     requestAnimationFrame(render);
 }
 
@@ -218,7 +218,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const steps = 6;
     const visibleCount = end - start;
 
-    const pointsPerStep = calcXScale(visibleCount, steps);
+    const pointsPerStep = Math.max(calcXScale(visibleCount, steps), 2);
 
     const horizontalOffset = (visibleStart % (pointsPerStep * 2)) / pointsPerStep;
     const currentScaleThreshold = steps * (pointsPerStep + 1);
@@ -230,9 +230,12 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const stepMultiplier = lerp(0.5, 1, horizontalStepMultiplier);
     const stepWidth = canvas.width / (steps) * stepMultiplier;
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const startX = stepWidth * horizontalOffset * -1;
+    // const startX = stepWidth * horizontalOffset * -1;
+    const startX = (start - prevStart) * gHorizontalStep + gStartX;
+    console.log(visibleStart, start, stepWidth, gHorizontalStep * pointsPerStep)
 
-    for (let i = 0; i < steps * 2; i++) {
+
+    for (let i = 0; i <= steps * 2; i++) {
         const index = start + pointsPerStep * i;
         if (index > points.length - 1) continue;
         const date = new Date(points[index][0]);
@@ -241,11 +244,14 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
         const opacity = i % 2 === 1 ? horizontalStepMultiplier : 1;
         ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
 
-        const xCoord = startX + i * stepWidth;
+        const xCoord = startX + i * pointsPerStep * gHorizontalStep;
+        // const xCoord = startX + i * stepWidth - 40;
         ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
 
+var gHorizontalStep;
+var gStartX;
 function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
 
@@ -254,10 +260,14 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
     const horizontalNextStep = (canvas.width) / (points.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
 
+
     const maxHeight = plotHeight;
 
     const startX = horizontalStep * horizontalOffset * -1;
     const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
+
+    gHorizontalStep = horizontalStep;
+    gStartX = startX;
 
     ctx.beginPath();
     ctx.lineWidth = 4;
@@ -272,7 +282,9 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
         // Debugging output
-        // ctx.fillText(new Date(point[0]).getDate(), xCoord, yCoord - 20)
+        ctx.fillStyle = 'red';
+        ctx.fillText(String(new Date(point[0]).getDate()), xCoord, yCoord - 20)
+        i % 16 === 0 && ctx.fillText(String(new Date(point[0]).getDate()), xCoord, maxHeight)
     }
 
     ctx.stroke();
