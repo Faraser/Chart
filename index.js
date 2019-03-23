@@ -134,12 +134,17 @@ winLeftButton.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
-const values = points.map(x => x[1]);
-const maxValue = Math.max.apply(null, values);
-const minValue = Math.min.apply(null, values);
+function drawWin(chartData) {
+    const yPointsGroup = chartData.y.map(yData => yData.yPoints);
 
-const diffValue = maxValue - minValue;
-drawWinPlot(ctx2, points, maxValue, diffValue);
+    const { min, max } = calcYAxes(yPointsGroup);
+
+    for (let i = 0; i < yPointsGroup.length; i++) {
+        drawWinPlot(ctx2, yPointsGroup[i], max, max - min, chartData.y[i].color);
+    }
+}
+
+drawWin(chartData);
 
 var prevAxis;
 var animationStartTime = performance.now();
@@ -159,11 +164,11 @@ function render() {
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
     const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
-    const visibleYValues = chartData.y.map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
+    const visibleYValuesGroup = chartData.y.map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let axis = calcYAxes(visibleYValues);
+    let axis = calcYAxes(visibleYValuesGroup);
     let { min, max } = axis;
 
     if (!animState) {
@@ -225,10 +230,10 @@ function render() {
 
     // console.log(visiblePoints.length)
     // TODO: разбить рендер цифер и линий
-    drawYAxis(values, animState, delta);
+    drawYAxis(animState, delta);
 
-    for (let i = 0; i < visibleYValues.length; i++) {
-        const visibleYValue = visibleYValues[i];
+    for (let i = 0; i < visibleYValuesGroup.length; i++) {
+        const visibleYValue = visibleYValuesGroup[i];
         const color = chartData.y[i].color;
         drawPlot(ctx, visibleXValues, visibleYValue, min, max, horizontalOffset, horizontalStepMultiplier, color);
     }
@@ -359,7 +364,7 @@ function nearestDegreeOf2(val) {
     return Math.floor(Math.log(val) / Math.log(2));
 }
 
-function drawYAxis(values, animState, delta) {
+function drawYAxis(animState, delta) {
     ctx.lineWidth = 1;
     ctx.font = '24px sans-serif';
     ctx.textAlign = 'left';
@@ -403,7 +408,7 @@ function drawYAxis(values, animState, delta) {
     }
 }
 
-function drawWinPlot(ctx, points, maxValue, diffValue) {
+function drawWinPlot(ctx, points, maxValue, diffValue, color) {
     const canvas = ctx.canvas;
     const verticalPadding = 10;
 
@@ -414,20 +419,20 @@ function drawWinPlot(ctx, points, maxValue, diffValue) {
     ctx.beginPath();
     ctx.lineWidth = 2;
     ctx.moveTo(0, 0);
-    ctx.strokeStyle = '#8f7fff';
+    ctx.strokeStyle = color;
     // ctx.lineJoin = 'round';
     points.forEach((point, i) => {
-        const yCoord = ((maxValue - point[1]) / diffValue) * maxHeight + verticalOffset;
+        const yCoord = ((maxValue - point) / diffValue) * maxHeight + verticalOffset;
         const xCoord = i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
     });
     ctx.stroke();
 }
 
-function calcYAxes(visibleYValues) {
+function calcYAxes(visibleYValuesGroup) {
     const valuesArray = [];
-    for (let i = 0; i < visibleYValues.length; i++) {
-        const arr = visibleYValues[i];
+    for (let i = 0; i < visibleYValuesGroup.length; i++) {
+        const arr = visibleYValuesGroup[i];
         for (let j = 0; j < arr.length; j++) {
             valuesArray.push(arr[j]);
         }
