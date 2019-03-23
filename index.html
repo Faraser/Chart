@@ -83,6 +83,19 @@
     #win__right:after {
         left: -14px;
     }
+
+    .controls {
+        margin-top: 18px;
+    }
+
+    .controls__button {
+        height: 36px;
+        border: 1px solid rgb(212, 224, 233);
+        display: inline-block;
+        line-height: 36px;
+        border-radius: 30px;
+        min-width: 70px;
+    }
 </style>
 <div id="chart">
     <canvas id="canvas" width="750" height="680"></canvas>
@@ -95,7 +108,14 @@
             <div id="win__right"></div>
         </div>
     </div>
+    <div class="controls">
+        <label class="controls__button"> <input class="controls__checkbox" type="checkbox" checked
+                                                data-index="0">#0</label>
+        <label class="controls__button"><input class="controls__checkbox" type="checkbox" checked
+                                               data-index="1">#1</label>
+    </div>
 </div>
+
 <script>
     const data = JSON.parse(`[
             {

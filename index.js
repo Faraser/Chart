@@ -30,7 +30,8 @@ function prepareData(data) {
         const id = rawData.columns[i][0];
         const yPoints = rawData.columns[i].slice(1);
         const color = rawData.colors[id];
-        yData.push({ yPoints, color })
+        const name = rawData.names[id];
+        yData.push({ yPoints, color, name, isVisible: true })
     }
 
     return {
@@ -38,6 +39,15 @@ function prepareData(data) {
         y: yData
     }
 }
+
+const controls = document.querySelector('.controls');
+controls.addEventListener('change', e => {
+    console.log(e.target.dataset.index, e.target.checked);
+    const index = e.target.dataset.index;
+    chartData.y[index].isVisible = e.target.checked;
+    drawWin(chartData);
+});
+
 
 let startX = 0;
 let currentTransform = 0;
@@ -125,10 +135,13 @@ winLeftButton.addEventListener('touchend', e => {
 });
 
 function drawWin(chartData) {
-    const yPointsGroup = chartData.y.map(yData => yData.yPoints);
+    const yPointsGroup = chartData.y
+        .filter(yData => yData.isVisible)
+        .map(yData => yData.yPoints);
 
     const { min, max } = calcYAxes(yPointsGroup);
 
+    ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     for (let i = 0; i < yPointsGroup.length; i++) {
         drawWinPlot(ctx2, yPointsGroup[i], max, max - min, chartData.y[i].color);
     }
@@ -138,7 +151,7 @@ drawWin(chartData);
 
 var prevAxis;
 var animationStartTime = performance.now();
-var maxAnimationTime = 400;
+var maxAnimationTime = 300;
 var isAnimate = false;
 
 var animState;
@@ -154,7 +167,9 @@ function render() {
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
     const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
-    const visibleYValuesGroup = chartData.y.map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
+    const visibleYValuesGroup = chartData.y
+        .filter(yData => yData.isVisible)
+        .map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
