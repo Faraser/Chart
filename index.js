@@ -21,7 +21,7 @@ const winFillerRight = document.getElementById('win__filler-right');
 const chartData = prepareData(data);
 
 function prepareData(data) {
-    const rawData = data[0];
+    const rawData = data[4];
 
     const xPoints = rawData.columns[0].slice(1);
     const yData = [];
@@ -63,7 +63,7 @@ controls.addEventListener('change', e => {
     const shouldVisible = e.target.checked;
 
     // Disable chart toggle if it last visible chart
-    if (visibleChartCount < 2 && !shouldVisible)  {
+    if (visibleChartCount < 2 && !shouldVisible) {
         e.preventDefault();
         e.target.checked = !shouldVisible;
         return;
@@ -71,7 +71,6 @@ controls.addEventListener('change', e => {
 
     const index = e.target.dataset.index;
     chartData.y[index].isVisible = shouldVisible;
-    drawWin(chartData);
 });
 
 let startX = 0;
@@ -159,20 +158,51 @@ winLeftButton.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
-function drawWin(chartData) {
-    const yPointsGroup = chartData.y
-        .filter(yData => yData.isVisible)
-        .map(yData => yData.yPoints);
+var prevMin, prevMax, prevVisibleChartCount, isNavigationAnimate;
 
-    const { min, max } = calcYAxes(yPointsGroup);
+function drawWin(chartData, delta) {
+    const yDataGroup = chartData.y
+        .filter(yData => yData.isVisible);
+
+    // Avoid unnecessary repaints
+    if (prevVisibleChartCount === yDataGroup.length && !isNavigationAnimate) return;
+
+    prevVisibleChartCount = yDataGroup.length;
+
+    let { min, max } = calcYAxes(yDataGroup.map(yData => yData.yPoints));
+
+    if (prevMin === undefined) {
+        prevMin = min;
+        prevMax = max;
+        prevVisibleChartCount = yDataGroup.length;
+    }
+
+    if (!isNavigationAnimate && (prevMin !== min || prevMax !== max)) {
+        isNavigationAnimate = true;
+    }
+
+    if (isNavigationAnimate) {
+        console.log(prevMin, prevMax, min, max, delta)
+        min = lerp(prevMin, min, delta);
+        max = lerp(prevMax, max, delta);
+
+    }
+
+    if (isNavigationAnimate && delta >= 1) {
+        prevMin = min;
+        prevMax = max;
+        isNavigationAnimate = false;
+    }
+
 
     ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-    for (let i = 0; i < yPointsGroup.length; i++) {
-        drawWinPlot(ctx2, yPointsGroup[i], max, max - min, chartData.y[i].color);
+    for (let i = 0; i < yDataGroup.length; i++) {
+        const yData = yDataGroup[i];
+        drawWinPlot(ctx2, yData.yPoints, max, min, yData.color);
     }
 }
 
-drawWin(chartData);
+// drawWin(chartData);
 
 var prevAxis;
 var animationStartTime = performance.now();
@@ -269,6 +299,8 @@ function render() {
     }
 
     drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
+
+    drawWin(chartData, delta);
     requestAnimationFrame(render);
 }
 
@@ -438,7 +470,7 @@ function drawYAxis(animState, delta) {
     }
 }
 
-function drawWinPlot(ctx, points, maxValue, diffValue, color) {
+function drawWinPlot(ctx, points, maxValue, minValue, color) {
     const canvas = ctx.canvas;
     const verticalPadding = 10;
 
@@ -451,7 +483,7 @@ function drawWinPlot(ctx, points, maxValue, diffValue, color) {
     ctx.moveTo(0, 0);
     ctx.strokeStyle = color;
     points.forEach((point, i) => {
-        const yCoord = ((maxValue - point) / diffValue) * maxHeight + verticalOffset;
+        const yCoord = ((maxValue - point) / (maxValue - minValue)) * maxHeight + verticalOffset;
         const xCoord = i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
     });
