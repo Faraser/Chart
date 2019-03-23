@@ -12,11 +12,11 @@ let CANVAS_WIDTH = canvas.width / 2;
 const plotHeight = canvas.height - 60;
 
 const chart = document.querySelector('.chart');
-const win = document.querySelector('.chart__navigation-window');
-const winRightButton = document.querySelector('.chart__navigation-control_right');
-const winLeftButton = document.querySelector('.chart__navigation-control_left');
-const winFillerLeft = document.querySelector('.chart__navigation-filler_left');
-const winFillerRight = document.querySelector('.chart__navigation-filler_right');
+const navWindow = document.querySelector('.chart__navigation-window');
+const navWindowRightControl = document.querySelector('.chart__navigation-control_right');
+const navWindowLeftControl = document.querySelector('.chart__navigation-control_left');
+const navWindowLeftFiller = document.querySelector('.chart__navigation-filler_left');
+const navWindowRightFiller = document.querySelector('.chart__navigation-filler_right');
 
 let isNightTheme = false;
 const switcher = document.querySelector('.chart__switcher');
@@ -94,34 +94,34 @@ controls.addEventListener('change', e => {
 let startX = 0;
 let currentTransform = 0;
 let winTransform = 0;
-let winWidth = win.clientWidth;
+let winWidth = navWindow.clientWidth;
 const minWinWidth = 30;
 let maxWinWidth = canvas.width / 2;
 
 let transform = 0;
 
 function updateFillers(transform, winWidth) {
-    winFillerLeft.style.width = `${Math.ceil(transform)}px`;
-    winFillerRight.style.width = `${Math.ceil(CANVAS_WIDTH - winWidth - transform)}px`;
+    navWindowLeftFiller.style.width = `${Math.ceil(transform)}px`;
+    navWindowRightFiller.style.width = `${Math.ceil(CANVAS_WIDTH - winWidth - transform)}px`;
 }
 
-win.addEventListener('touchstart', e => {
+navWindow.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
 });
 
-win.addEventListener('touchmove', e => {
+navWindow.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = x - startX;
     transform = Math.max(0, currentTransform + diffX);
     transform = Math.min(transform, canvas.width / 2 - winWidth);
 
-    win.style.transform = `translateX(${transform}px)`;
+    navWindow.style.transform = `translateX(${transform}px)`;
     updateFillers(transform, winWidth);
 
     winTransform = transform
 });
 
-win.addEventListener('touchend', e => {
+navWindow.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
@@ -131,19 +131,19 @@ const onTouchStart = e => {
     startButtonX = e.changedTouches[0].clientX;
     prevWinWidth = winWidth;
 };
-winRightButton.addEventListener('touchstart', onTouchStart);
-winLeftButton.addEventListener('touchstart', onTouchStart);
-winRightButton.addEventListener('touchmove', e => {
+navWindowRightControl.addEventListener('touchstart', onTouchStart);
+navWindowLeftControl.addEventListener('touchstart', onTouchStart);
+navWindowRightControl.addEventListener('touchmove', e => {
     e.stopPropagation();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startButtonX;
     const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
-    win.style.width = Math.ceil(newWidth) + 'px';
+    navWindow.style.width = Math.ceil(newWidth) + 'px';
     updateFillers(transform, winWidth);
     winWidth = newWidth;
 });
 
-winLeftButton.addEventListener('touchmove', e => {
+navWindowLeftControl.addEventListener('touchmove', e => {
     e.stopPropagation();
     let x = e.changedTouches[0].clientX;
     const diffX = startButtonX - x;
@@ -163,15 +163,15 @@ winLeftButton.addEventListener('touchmove', e => {
         newTransform = 0;
     }
 
-    win.style.width = Math.ceil(newWidth) + 'px';
-    win.style.transform = `translateX(${Math.ceil(newTransform)}px)`;
+    navWindow.style.width = Math.ceil(newWidth) + 'px';
+    navWindow.style.transform = `translateX(${Math.ceil(newTransform)}px)`;
     updateFillers(transform, winWidth);
 
     transform = newTransform;
     winWidth = newWidth;
 });
 
-winLeftButton.addEventListener('touchend', e => {
+navWindowLeftControl.addEventListener('touchend', e => {
     currentTransform = transform;
 });
 
@@ -536,7 +536,7 @@ function resize() {
     transform = CANVAS_WIDTH - winWidth;
     winTransform = transform;
     currentTransform = transform;
-    win.style.transform = `translateX(${transform}px)`;
+    navWindow.style.transform = `translateX(${transform}px)`;
     updateFillers(transform, winWidth);
     isNavigationAnimate = true;
 }
