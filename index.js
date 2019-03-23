@@ -31,7 +31,7 @@ let startX = 0;
 let currentTransform = 0;
 let winTransform = 0;
 let winWidth = win.clientWidth;
-const minWinWidth = 20;
+const minWinWidth = 30;
 const maxWinWidth = canvas.width / 2;
 
 let transform = 0;
@@ -238,12 +238,14 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const startX = (start - prevStart) * gHorizontalStep + gStartX;
 
+    ctx.textAlign = 'center';
+    ctx.font = "24px sans-serif";
+
     for (let i = 0; i <= steps * 2; i++) {
         const index = start + pointsPerStep * i;
         if (index > points.length - 1) continue;
         const date = new Date(points[index][0]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
-        ctx.font = "24px sans-serif";
         const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
         ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
 
@@ -324,7 +326,8 @@ function nearestDegreeOf2(val) {
 
 function drawYAxis(values, animState, delta) {
     ctx.lineWidth = 1;
-    ctx.font = "24px sans-serif";
+    ctx.font = '24px sans-serif';
+    ctx.textAlign = 'left';
     const { currentAxis, preventAxis } = animState;
     const step = plotHeight / currentAxis.steps;
 
