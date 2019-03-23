@@ -59,8 +59,18 @@ createControls(chartData);
 
 const controls = document.querySelector('.controls');
 controls.addEventListener('change', e => {
+    const visibleChartCount = chartData.y.reduce((acc, cur) => cur.isVisible ? acc + 1 : acc, 0);
+    const shouldVisible = e.target.checked;
+
+    // Disable chart toggle if it last visible chart
+    if (visibleChartCount < 2 && !shouldVisible)  {
+        e.preventDefault();
+        e.target.checked = !shouldVisible;
+        return;
+    }
+
     const index = e.target.dataset.index;
-    chartData.y[index].isVisible = e.target.checked;
+    chartData.y[index].isVisible = shouldVisible;
     drawWin(chartData);
 });
 
