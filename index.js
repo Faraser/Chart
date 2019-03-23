@@ -37,8 +37,8 @@ const maxWinWidth = canvas.width / 2;
 let transform = 0;
 
 function updateFillers(transform, winWidth) {
-    winFillerLeft.style.width = `${transform}px`;
-    winFillerRight.style.width = `${CANVAS_WIDTH - winWidth - transform}px`;
+    winFillerLeft.style.width = `${Math.ceil(transform)}px`;
+    winFillerRight.style.width = `${Math.ceil(CANVAS_WIDTH - winWidth - transform)}px`;
 }
 
 win.addEventListener('touchstart', e => {
@@ -330,6 +330,7 @@ function drawYAxis(values, animState, delta) {
     ctx.textAlign = 'left';
     const { currentAxis, preventAxis } = animState;
     const step = plotHeight / currentAxis.steps;
+    const xPadding = 24;
 
     // Render new
     ctx.strokeStyle = `rgba(215,215,219, ${delta})`;
@@ -341,9 +342,9 @@ function drawYAxis(values, animState, delta) {
         let yCoord = plotHeight - step * i * stepMultiplier;
 
         ctx.beginPath();
-        ctx.moveTo(0, yCoord);
+        ctx.moveTo(xPadding, yCoord);
         ctx.fillText(currentAxis.min + currentAxis.stepValue * i, 20, yCoord - 10);
-        ctx.lineTo(canvas.width, yCoord);
+        ctx.lineTo(canvas.width - xPadding, yCoord);
         ctx.stroke();
     }
 
@@ -360,9 +361,9 @@ function drawYAxis(values, animState, delta) {
         let yCoord = plotHeight - step * i * reversedStepMultiplier;
 
         ctx.beginPath();
-        ctx.moveTo(0, yCoord);
+        ctx.moveTo(xPadding, yCoord);
         ctx.fillText(preventAxis.min + preventAxis.stepValue * i, 20, yCoord - 10);
-        ctx.lineTo(canvas.width, yCoord);
+        ctx.lineTo(canvas.width - xPadding, yCoord);
         ctx.stroke();
     }
 }

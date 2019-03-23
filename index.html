@@ -18,6 +18,7 @@
     #canvas, #canvas2 {
         width: 375px;
         height: 300px;
+        display: block;
     }
 
     #canvas2 {
@@ -27,6 +28,7 @@
     .wrapper {
         position: relative;
         height: 40px;
+        margin-top: 12px;
     }
 
     #win {
@@ -78,18 +80,20 @@
         height: 38px;
     }
 
-    #win__right:after  {
-       left: -14px;
+    #win__right:after {
+        left: -14px;
     }
 </style>
-<canvas id="canvas" width="750" height="600"></canvas>
-<div class="wrapper">
-    <div id="win__filler-left"></div>
-    <div id="win__filler-right"></div>
-    <canvas id="canvas2" width="750" height="80"></canvas>
-    <div id="win" style="transform: translateX(0)">
-        <div id="win__left"></div>
-        <div id="win__right"></div>
+<div id="chart">
+    <canvas id="canvas" width="750" height="600"></canvas>
+    <div class="wrapper">
+        <div id="win__filler-left"></div>
+        <div id="win__filler-right"></div>
+        <canvas id="canvas2" width="750" height="80"></canvas>
+        <div id="win" style="transform: translateX(0)">
+            <div id="win__left"></div>
+            <div id="win__right"></div>
+        </div>
     </div>
 </div>
 <script>
