@@ -5,11 +5,10 @@ window.oncontextmenu = function() {
 const canvas = document.querySelector('.chart__main-canvas');
 const ctx = canvas.getContext('2d');
 
-const canvas2 = document.querySelector('.chart__navigation-canvas');
-const ctx2 = canvas2.getContext('2d');
+const navCanvas = document.querySelector('.chart__navigation-canvas');
+const navCtx = navCanvas.getContext('2d');
 
 let CANVAS_WIDTH = canvas.width / 2;
-const CANVAS_HEIGTH = canvas.height / 2;
 const plotHeight = canvas.height - 60;
 
 const chart = document.querySelector('.chart');
@@ -161,7 +160,6 @@ winLeftButton.addEventListener('touchmove', e => {
     // Если упираемся в левый угол
     if (newTransform < 0) {
         newWidth += newTransform;
-        console.log(newTransform, newWidth)
         newTransform = 0;
     }
 
@@ -201,7 +199,6 @@ function drawWin(chartData, delta) {
     }
 
     if (isNavigationAnimate) {
-        console.log(prevMin, prevMax, min, max, delta)
         min = lerp(prevMin, min, delta);
         max = lerp(prevMax, max, delta);
 
@@ -213,10 +210,10 @@ function drawWin(chartData, delta) {
         isNavigationAnimate = false;
     }
 
-    ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+    navCtx.clearRect(0, 0, navCtx.canvas.width, navCtx.canvas.height);
     for (let i = 0; i < yDataGroup.length; i++) {
         const yData = yDataGroup[i];
-        drawWinPlot(ctx2, yData.yPoints, max, min, yData.color);
+        drawWinPlot(navCtx, yData.yPoints, max, min, yData.color);
     }
 }
 
@@ -262,7 +259,6 @@ function render() {
 
     // Should animate
     if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
-        console.log('should animate');
         animState = {
             startMin: prevAxis.min,
             startMax: prevAxis.max,
@@ -300,12 +296,9 @@ function render() {
             prevAxis = axis;
             isAnimate = true;
         }
-
-        // console.log('animate');
     }
 
-    // console.log(visiblePoints.length)
-    // TODO: разбить рендер цифер и линий
+    // TODO: divide render numbers and lines
     drawYAxis(animState, delta);
 
     for (let i = 0; i < visibleYValuesGroup.length; i++) {
@@ -375,7 +368,6 @@ function drawPlot(ctx,
                   color) {
     const canvas = ctx.canvas;
 
-    // TODO решить проблему отступа и последней точки
     const horizontalPrevStep = (canvas.width) / (visibleXPoints.length - 3);
     const horizontalNextStep = (canvas.width) / (visibleXPoints.length - 2);
     const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier);
@@ -403,6 +395,7 @@ function drawPlot(ctx,
         const yCoord = maxHeight - reverseLerp(min, max, yValue) * maxHeight;
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
+
         // Debugging output
         // ctx.fillStyle = 'red';
         // ctx.fillText(String(new Date(point[0]).getDate()), xCoord, yCoord - 20)
@@ -424,22 +417,8 @@ function remap(a, b, c, d, val) {
     return (d - c) * val / (b - a);
 }
 
-function roundByModuleUp(val, mod) {
-    const tmp = val % mod;
-    return tmp === 0 ? val : (val - tmp + mod)
-}
-
-function roundByModuleDown(val, mod) {
-    const tmp = val % mod;
-    return tmp === 0 ? val : (val - tmp)
-}
-
 function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
-}
-
-function nearestDegreeOf2(val) {
-    return Math.floor(Math.log(val) / Math.log(2));
 }
 
 function drawYAxis(animState, delta) {
@@ -519,20 +498,19 @@ function calcYAxes(visibleYValuesGroup) {
         }
     }
 
-    var calculateOrderOfMagnitude = function(val) {
-            return Math.floor(Math.log(val) / Math.LN10);
-        },
-        maxSteps = 6,
-        maxValue = Math.max.apply(Math, valuesArray),
-        minValue = Math.min.apply(Math, valuesArray),
+    const calculateOrderOfMagnitude = val => Math.floor(Math.log(val) / Math.LN10);
 
-        valueRange = Math.abs(maxValue - minValue),
-        rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange),
+    const maxSteps = 6;
+    const maxValue = Math.max.apply(Math, valuesArray);
+    const minValue = Math.min.apply(Math, valuesArray);
 
-        graphMax = Math.ceil(maxValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
-        graphMin = Math.floor(minValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude),
-        graphRange = graphMax - graphMin,
-        stepValue = Math.round(graphRange / maxSteps);
+    const valueRange = Math.abs(maxValue - minValue);
+    const rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange);
+
+    const graphMax = Math.ceil(maxValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
+    const graphMin = Math.floor(minValue / (Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
+    const graphRange = graphMax - graphMin;
+    const stepValue = Math.round(graphRange / maxSteps);
 
     return {
         steps: maxSteps,
@@ -551,7 +529,7 @@ function resizeCanvas(canvas) {
 
 function resize() {
     resizeCanvas(canvas);
-    resizeCanvas(canvas2);
+    resizeCanvas(navCanvas);
 
     CANVAS_WIDTH = canvas.width / 2;
     maxWinWidth = CANVAS_WIDTH;
