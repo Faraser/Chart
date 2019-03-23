@@ -181,6 +181,17 @@
         margin-top: 50px;
     }
 
+    .chart__select-wrapper {
+        margin-top: 20px;
+        margin-bottom: -20px;
+        text-align: center;
+    }
+
+    .chart__select {
+        color: black;
+        border: 1px solid currentColor;
+    }
+
 </style>
 <div class="chart">
     <h2 class="chart__title">Followers</h2>
@@ -195,6 +206,16 @@
         </div>
     </div>
     <div class="controls"></div>
+    <div class="chart__select-wrapper">
+        <label>Choose dataset</label>
+        <select class="chart__select">
+            <option value="0">Dataset #1</option>
+            <option value="1">Dataset #2</option>
+            <option value="2">Dataset #3</option>
+            <option value="3">Dataset #4</option>
+            <option value="4">Dataset #5</option>
+        </select>
+    </div>
     <a class="chart__switcher">Switch to Night Mode</a>
 </div>
 <div class="icon-storage" hidden>

@@ -32,10 +32,10 @@ const getLineColor = (opacity) => isNightTheme ?
                                   `rgba(65, 86, 106, ${opacity})` :
                                   `rgba(148,148,152, ${opacity})`;
 
-const chartData = prepareData(data);
+let chartData = prepareData(data, 0);
 
-function prepareData(data) {
-    const rawData = data[0];
+function prepareData(data, index) {
+    const rawData = data[index];
 
     const xPoints = rawData.columns[0].slice(1);
     const yData = [];
@@ -53,6 +53,13 @@ function prepareData(data) {
         y: yData
     }
 }
+
+const select = document.querySelector('.chart__select');
+select.addEventListener('change', e => {
+    chartData = prepareData(data, e.target.value);
+    createControls(chartData);
+});
+
 
 function createControls(chartData) {
     const controls = document.querySelector('.controls');
