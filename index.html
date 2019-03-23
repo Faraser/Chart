@@ -13,6 +13,7 @@
         touch-action: pan-x;
         user-select: none;
         -webkit-user-select: none;
+        font-family: 'Helvetica Neue', Roboto, 'Segoe UI', Arial, Helvetica, sans-serif;
     }
 
     #canvas, #canvas2 {
@@ -95,6 +96,17 @@
         line-height: 36px;
         border-radius: 30px;
         min-width: 70px;
+        padding: 0 10px;
+    }
+
+    .controls__icon {
+        display: inline-block;
+
+        position: relative;
+        top: 4px;
+
+        width: 20px;
+        height: 20px;
     }
 </style>
 <div id="chart">
@@ -115,7 +127,18 @@
                                                data-index="1">#1</label>
     </div>
 </div>
-
+<div class="icon-storage" hidden>
+    <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+         y="0px"
+         viewBox="0 0 215.434 215.434" enable-background="new 0 0 215.434 215.434"
+         xml:space="preserve">
+<g>
+	<circle cx="107.717" cy="107.717" r="106.299"/>
+    <polygon fill="#FFFFFF"
+             points="96.977,121.718 145.084,50.79 168.752,69.02 103.583,164.647 46.678,120.299 63.562,96.402 	"/>
+</g>
+</svg>
+</div>
 <script>
     const data = JSON.parse(`[
             {

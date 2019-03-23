@@ -40,6 +40,23 @@ function prepareData(data) {
     }
 }
 
+function createControls(chartData) {
+    const controls = document.querySelector('.controls');
+    const icon = document.querySelector('.icon-storage').innerHTML;
+    let html = '';
+    for (let i = 0; i < chartData.y.length; i++) {
+        const name = chartData.y[i].name;
+        const color = chartData.y[i].color;
+        html += `<label class="controls__button">
+            <div class="controls__icon" style="fill:${color}">${icon}</div>
+            <input type="checkbox" data-index="${i}" hidden>${name}</label>
+        `;
+    }
+    controls.innerHTML = html;
+}
+
+createControls(chartData)
+
 const controls = document.querySelector('.controls');
 controls.addEventListener('change', e => {
     console.log(e.target.dataset.index, e.target.checked);
@@ -47,7 +64,6 @@ controls.addEventListener('change', e => {
     chartData.y[index].isVisible = e.target.checked;
     drawWin(chartData);
 });
-
 
 let startX = 0;
 let currentTransform = 0;
