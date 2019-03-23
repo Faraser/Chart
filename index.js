@@ -25,6 +25,28 @@ for (let i = 1; i < rawData[0].length; i++) {
     points.push([rawData[0][i], rawData[1][i]]);
 }
 
+const chartData = prepareData(data);
+console.log(chartData)
+
+function prepareData(data) {
+    const rawData = data[0];
+
+    const xPoints = rawData.columns[0].slice(1);
+    const yData = [];
+
+    for (let i = 1; i < rawData.columns.length; i++) {
+        const id = rawData.columns[i][0];
+        const yPoints = rawData.columns[i].slice(1);
+        const color = rawData.colors[id];
+        yData.push({ yPoints, color })
+    }
+
+    return {
+        x: xPoints,
+        y: yData
+    }
+}
+
 console.log(points)
 
 let startX = 0;
@@ -127,6 +149,7 @@ var isAnimate = false;
 var animState;
 
 function render() {
+    const points = chartData.x;
     const visibleStart = points.length * transform / CANVAS_WIDTH;
     const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
     const horizontalOffset = visibleStart % 1;
@@ -135,13 +158,12 @@ function render() {
     const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
-    const visiblePoints = points.slice(visibleStartPoint, visibleEndPoint);
-
-    const values = visiblePoints.map(x => x[1]);
+    const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
+    const visibleYValues = chartData.y.map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let axis = calcYAxes(values);
+    let axis = calcYAxes(visibleYValues);
     let { min, max } = axis;
 
     if (!animState) {
@@ -204,7 +226,13 @@ function render() {
     // console.log(visiblePoints.length)
     // TODO: разбить рендер цифер и линий
     drawYAxis(values, animState, delta);
-    drawPlot(ctx, visiblePoints, min, max, horizontalOffset, horizontalStepMultiplier);
+
+    for (let i = 0; i < visibleYValues.length; i++) {
+        const visibleYValue = visibleYValues[i];
+        const color = chartData.y[i].color;
+        drawPlot(ctx, visibleXValues, visibleYValue, min, max, horizontalOffset, horizontalStepMultiplier, color);
+    }
+
     drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
     requestAnimationFrame(render);
 }
@@ -244,7 +272,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     for (let i = 0; i <= steps * 2; i++) {
         const index = start + pointsPerStep * i;
         if (index > points.length - 1) continue;
-        const date = new Date(points[index][0]);
+        const date = new Date(points[index]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
         ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
@@ -257,18 +285,22 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
 var gHorizontalStep;
 var gStartX;
 
-function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultiplier) {
+function drawPlot(ctx,
+                  visibleXPoints, visibleYValues,
+                  min, max,
+                  horizontalOffset, horizontalStepMultiplier,
+                  color) {
     const canvas = ctx.canvas;
 
     // TODO решить проблему отступа и последней точки
-    const horizontalPrevStep = (canvas.width) / (points.length - 3);
-    const horizontalNextStep = (canvas.width) / (points.length - 2);
-    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier)
+    const horizontalPrevStep = (canvas.width) / (visibleXPoints.length - 3);
+    const horizontalNextStep = (canvas.width) / (visibleXPoints.length - 2);
+    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier);
 
     const maxHeight = plotHeight;
 
     const startX = horizontalStep * horizontalOffset * -1;
-    const startY = maxHeight - reverseLerp(min, max, points[0][1]) * maxHeight;
+    const startY = maxHeight - reverseLerp(min, max, visibleYValues[0]) * maxHeight;
 
     gHorizontalStep = horizontalStep;
     gStartX = startX;
@@ -277,12 +309,15 @@ function drawPlot(ctx, points, min, max, horizontalOffset, horizontalStepMultipl
     ctx.lineWidth = 4;
     ctx.moveTo(startX, startY);
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#8f7fff';
+    ctx.strokeStyle = color;
 
-    for (let i = 1; i < points.length; i++) {
-        const point = points[i];
-        if (point[0] === 0) continue;
-        const yCoord = maxHeight - reverseLerp(min, max, point[1]) * maxHeight;
+    for (let i = 1; i < visibleXPoints.length; i++) {
+        const xValue = visibleXPoints[i];
+        const yValue = visibleYValues[i];
+
+        if (xValue === 0) continue;
+
+        const yCoord = maxHeight - reverseLerp(min, max, yValue) * maxHeight;
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
         // Debugging output
@@ -389,7 +424,15 @@ function drawWinPlot(ctx, points, maxValue, diffValue) {
     ctx.stroke();
 }
 
-function calcYAxes(valuesArray) {
+function calcYAxes(visibleYValues) {
+    const valuesArray = [];
+    for (let i = 0; i < visibleYValues.length; i++) {
+        const arr = visibleYValues[i];
+        for (let j = 0; j < arr.length; j++) {
+            valuesArray.push(arr[j]);
+        }
+    }
+
     var calculateOrderOfMagnitude = function(val) {
             return Math.floor(Math.log(val) / Math.LN10);
         },
