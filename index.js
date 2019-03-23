@@ -8,17 +8,6 @@ const ctx = canvas.getContext('2d');
 const canvas2 = document.getElementById('canvas2')
 const ctx2 = canvas2.getContext('2d');
 
-function resizeCanvas(canvas) {
-    const newWidth = window.innerWidth;
-
-    canvas.width = newWidth * 2;
-    canvas.style.width = newWidth + 'px';
-}
-
-resizeCanvas(canvas);
-resizeCanvas(canvas2);
-
-
 let CANVAS_WIDTH = canvas.width / 2;
 const CANVAS_HEIGTH = canvas.height / 2;
 const plotHeight = canvas.height - 60;
@@ -89,7 +78,7 @@ let currentTransform = 0;
 let winTransform = 0;
 let winWidth = win.clientWidth;
 const minWinWidth = 30;
-const maxWinWidth = canvas.width / 2;
+let maxWinWidth = canvas.width / 2;
 
 let transform = 0;
 
@@ -204,7 +193,6 @@ function drawWin(chartData, delta) {
         prevMax = max;
         isNavigationAnimate = false;
     }
-
 
     ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     for (let i = 0; i < yDataGroup.length; i++) {
@@ -531,10 +519,29 @@ function calcYAxes(visibleYValuesGroup) {
     };
 }
 
-transform = CANVAS_WIDTH - winWidth;
-winTransform = transform;
-currentTransform = transform;
-win.style.transform = `translateX(${transform}px)`;
-updateFillers(transform, winWidth);
+function resizeCanvas(canvas) {
+    const newWidth = window.innerWidth;
+
+    canvas.width = newWidth * 2;
+    canvas.style.width = newWidth + 'px';
+}
+
+function resize() {
+    resizeCanvas(canvas);
+    resizeCanvas(canvas2);
+
+    CANVAS_WIDTH = canvas.width / 2;
+    maxWinWidth = CANVAS_WIDTH;
+    transform = CANVAS_WIDTH - winWidth;
+    winTransform = transform;
+    currentTransform = transform;
+    win.style.transform = `translateX(${transform}px)`;
+    updateFillers(transform, winWidth);
+    isNavigationAnimate = true;
+}
+
+window.addEventListener('resize', resize);
+
+resize();
 
 render();
