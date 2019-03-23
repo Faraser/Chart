@@ -14,6 +14,16 @@
         user-select: none;
         -webkit-user-select: none;
         font-family: 'Helvetica Neue', Roboto, 'Segoe UI', Arial, Helvetica, sans-serif;
+        height: 100%;
+    }
+
+    .chart {
+        min-height: 100vh;
+    }
+
+    .chart_theme_night {
+        color: white;
+        background: rgb(36, 47, 61);
     }
 
     #canvas, #canvas2 {
@@ -43,12 +53,22 @@
         box-sizing: border-box;
     }
 
+    .chart_theme_night #win {
+        border-color: rgb(63, 85, 104);
+    }
+
     #win__filler-left, #win__filler-right {
         position: absolute;
         height: 40px;
         background-color: rgb(243, 247, 249);
         z-index: -1;
     }
+
+    .chart_theme_night #win__filler-left,
+    .chart_theme_night #win__filler-right {
+        background-color: rgb(31, 42, 55);
+    }
+
 
     #win__filler-left {
         width: 275px;
@@ -67,6 +87,11 @@
         width: 6px;
         right: 0;
         background-color: rgb(212, 224, 233);
+    }
+
+    .chart_theme_night #win__left,
+    .chart_theme_night #win__right {
+        background-color: rgb(63, 85, 104);
     }
 
     #win__left {
@@ -97,6 +122,10 @@
         line-height: 36px;
         border-radius: 30px;
         padding: 0 16px 0 8px;
+    }
+
+    .chart_theme_night .controls__button {
+        border-color: rgb(63, 85, 104);
     }
 
     .controls__icon {
@@ -138,11 +167,22 @@
     }
 
     .chart__title {
-        margin: 30px 10px 0;
+        padding: 30px 10px 0;
+        margin: 0;
+    }
+
+    .chart__switcher {
+        display: block;
+        text-align: center;
+        white-space: nowrap;
+        font-size: 20px;
+        color: rgb(62, 170, 239);
+        padding: 20px;
+        margin-top: 50px;
     }
 
 </style>
-<div id="chart">
+<div class="chart">
     <h2 class="chart__title">Followers</h2>
     <canvas id="canvas" width="750" height="680"></canvas>
     <div class="wrapper">
@@ -155,6 +195,7 @@
         </div>
     </div>
     <div class="controls"></div>
+    <a class="chart__switcher">Switch to Night Mode</a>
 </div>
 <div class="icon-storage" hidden>
     <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"

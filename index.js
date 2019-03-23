@@ -13,10 +13,24 @@ const CANVAS_HEIGTH = canvas.height / 2;
 const plotHeight = canvas.height - 60;
 
 const win = document.getElementById('win');
+const chart = document.querySelector('.chart');
 const winRightButton = document.getElementById('win__right');
 const winLeftButton = document.getElementById('win__left');
 const winFillerLeft = document.getElementById('win__filler-left');
 const winFillerRight = document.getElementById('win__filler-right');
+
+
+let isNightTheme = false;
+const switcher = document.querySelector('.chart__switcher');
+switcher.addEventListener('click', e => {
+    e.preventDefault();
+    chart.classList.toggle('chart_theme_night');
+    isNightTheme = !isNightTheme;
+});
+
+const getLineColor = (opacity) => isNightTheme ?
+                                  `rgba(65, 86, 106, ${opacity})` :
+                                  `rgba(148,148,152, ${opacity})`;
 
 const chartData = prepareData(data);
 
@@ -339,7 +353,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
         const date = new Date(points[index]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
-        ctx.fillStyle = `rgba(148,148,152, ${opacity})`;
+        ctx.fillStyle = getLineColor(opacity);
 
         const xCoord = startX + i * pointsPerStep * gHorizontalStep;
         ctx.fillText(text, xCoord, canvas.height - 10);
@@ -432,8 +446,9 @@ function drawYAxis(animState, delta) {
     const xPadding = 24;
 
     // Render new
-    ctx.strokeStyle = `rgba(215,215,219, ${delta})`;
-    ctx.fillStyle = `rgba(148,148,152, ${delta})`;
+    const color = getLineColor(delta)
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
     let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
     stepMultiplier = lerp(stepMultiplier, 1, delta);
 
@@ -449,8 +464,9 @@ function drawYAxis(animState, delta) {
 
     // Render prev
     let reverseDelta = 1 - delta;
-    ctx.strokeStyle = `rgba(215,215,219, ${reverseDelta})`;
-    ctx.fillStyle = `rgba(148,148,152, ${reverseDelta})`;
+    const reverseColor = getLineColor(reverseDelta);
+    ctx.strokeStyle = reverseColor;
+    ctx.fillStyle = reverseColor;
 
     // TODO эта штука должна сжиматься, а сейчас поднимается вверх
     let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
@@ -475,9 +491,11 @@ function drawWinPlot(ctx, points, maxValue, minValue, color) {
     const maxHeight = canvas.height - verticalPadding;
     const verticalOffset = (canvas.height - maxHeight) / 2;
 
+    const startY = ((maxValue - points[0]) / (maxValue - minValue)) * maxHeight + verticalOffset;
+
     ctx.beginPath();
     ctx.lineWidth = 2;
-    ctx.moveTo(0, 0);
+    ctx.moveTo(0, startY);
     ctx.strokeStyle = color;
     points.forEach((point, i) => {
         const yCoord = ((maxValue - point) / (maxValue - minValue)) * maxHeight + verticalOffset;
