@@ -8,7 +8,18 @@ const ctx = canvas.getContext('2d');
 const canvas2 = document.getElementById('canvas2')
 const ctx2 = canvas2.getContext('2d');
 
-const CANVAS_WIDTH = canvas.width / 2;
+function resizeCanvas(canvas) {
+    const newWidth = window.innerWidth;
+
+    canvas.width = newWidth * 2;
+    canvas.style.width = newWidth + 'px';
+}
+
+resizeCanvas(canvas);
+resizeCanvas(canvas2);
+
+
+let CANVAS_WIDTH = canvas.width / 2;
 const CANVAS_HEIGTH = canvas.height / 2;
 const plotHeight = canvas.height - 60;
 
@@ -201,8 +212,6 @@ function drawWin(chartData, delta) {
         drawWinPlot(ctx2, yData.yPoints, max, min, yData.color);
     }
 }
-
-// drawWin(chartData);
 
 var prevAxis;
 var animationStartTime = performance.now();
@@ -526,5 +535,6 @@ transform = CANVAS_WIDTH - winWidth;
 winTransform = transform;
 currentTransform = transform;
 win.style.transform = `translateX(${transform}px)`;
+updateFillers(transform, winWidth);
 
 render();
