@@ -56,6 +56,7 @@ const select = document.querySelector('.chart__select');
 select.addEventListener('change', e => {
     chartData = prepareData(data, e.target.value);
     createControls(chartData);
+    drawWin(chartData, 1, true);
 });
 
 function createControls(chartData) {
@@ -177,12 +178,12 @@ navWindowLeftControl.addEventListener('touchend', e => {
 
 var prevMin, prevMax, prevVisibleChartCount, isNavigationAnimate;
 
-function drawWin(chartData, delta) {
+function drawWin(chartData, delta, forceRepaint) {
     const yDataGroup = chartData.y
         .filter(yData => yData.isVisible);
 
     // Avoid unnecessary repaints
-    if (prevVisibleChartCount === yDataGroup.length && !isNavigationAnimate) return;
+    if (prevVisibleChartCount === yDataGroup.length && !isNavigationAnimate && !forceRepaint) return;
 
     prevVisibleChartCount = yDataGroup.length;
 
