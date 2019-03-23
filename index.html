@@ -26,23 +26,24 @@
         background: rgb(36, 47, 61);
     }
 
-    #canvas, #canvas2 {
+    .chart__main-canvas,
+    .chart__navigation-canvas {
         width: 375px;
         height: 340px;
         display: block;
     }
 
-    #canvas2 {
+    .chart__navigation-canvas {
         height: 40px;
     }
 
-    .wrapper {
+    .chart__navigation {
         position: relative;
         height: 40px;
         margin-top: 12px;
     }
 
-    #win {
+    .chart__navigation-window {
         position: absolute;
         width: 100px;
         height: 40px;
@@ -53,35 +54,35 @@
         box-sizing: border-box;
     }
 
-    .chart_theme_night #win {
+    .chart_theme_night .chart__navigation-window {
         border-color: rgb(63, 85, 104);
     }
 
-    #win__filler-left, #win__filler-right {
+    .chart__navigation-filler_left,
+    .chart__navigation-filler_right {
         position: absolute;
         height: 40px;
         background-color: rgb(243, 247, 249);
         z-index: -1;
     }
 
-    .chart_theme_night #win__filler-left,
-    .chart_theme_night #win__filler-right {
+    .chart_theme_night .chart__navigation-filler_left,
+    .chart_theme_night .chart__navigation-filler_right {
         background-color: rgb(31, 42, 55);
     }
 
-
-    #win__filler-left {
+    .chart__navigation-filler_left {
         width: 275px;
         left: 0;
     }
 
-    #win__filler-right {
+    .chart__navigation-filler_right {
         width: 0;
         right: 0;
     }
 
-
-    #win__left, #win__right {
+    .chart__navigation-control_left,
+    .chart__navigation-control_right {
         position: absolute;
         height: 100%;
         width: 6px;
@@ -89,16 +90,17 @@
         background-color: rgb(212, 224, 233);
     }
 
-    .chart_theme_night #win__left,
-    .chart_theme_night #win__right {
+    .chart_theme_night .chart__navigation-control_left,
+    .chart_theme_night .chart__navigation-control_right {
         background-color: rgb(63, 85, 104);
     }
 
-    #win__left {
+    .chart__navigation-control_left {
         left: 0;
     }
 
-    #win__left:before, #win__right:after {
+    .chart__navigation-control_left:before,
+    .chart__navigation-control_right:after {
         position: absolute;
         width: 20px;
         content: ' ';
@@ -106,16 +108,16 @@
         height: 38px;
     }
 
-    #win__right:after {
+    .chart__navigation-control_left:after {
         left: -14px;
     }
 
-    .controls {
+    .chart__controls {
         margin-top: 18px;
         margin-left: 10px;
     }
 
-    .controls__button {
+    .chart__controls-button {
         height: 36px;
         border: 1px solid rgb(212, 224, 233);
         display: inline-block;
@@ -124,11 +126,11 @@
         padding: 0 16px 0 8px;
     }
 
-    .chart_theme_night .controls__button {
+    .chart_theme_night .chart__controls-button {
         border-color: rgb(63, 85, 104);
     }
 
-    .controls__icon {
+    .chart__controls-icon {
         display: inline-block;
 
         position: relative;
@@ -140,11 +142,11 @@
         margin-right: 5px;
     }
 
-    .controls__icon svg {
+    .chart__controls-icon svg {
         opacity: 0;
     }
 
-    .controls__icon:after {
+    .chart__controls-icon:after {
         display: block;
         content: '';
         width: 20px;
@@ -158,11 +160,11 @@
         opacity: 1;
     }
 
-    .controls__checkbox:checked + .controls__icon svg {
+    .chart__controls-checkbox:checked + .chart__controls-icon svg {
         opacity: 1;
     }
 
-    .controls__checkbox:checked + .controls__icon:after {
+    .chart__controls-checkbox:checked + .chart__controls-icon:after {
         opacity: 0;
     }
 
@@ -195,17 +197,17 @@
 </style>
 <div class="chart">
     <h2 class="chart__title">Followers</h2>
-    <canvas id="canvas" width="750" height="680"></canvas>
-    <div class="wrapper">
-        <div id="win__filler-left"></div>
-        <div id="win__filler-right"></div>
-        <canvas id="canvas2" width="750" height="80"></canvas>
-        <div id="win" style="transform: translateX(0)">
-            <div id="win__left"></div>
-            <div id="win__right"></div>
+    <canvas class="chart__main-canvas" width="750" height="680"></canvas>
+    <div class="chart__navigation">
+        <div id="win__filler-left" class="chart__navigation-filler_left"></div>
+        <div id="win__filler-right" class="chart__navigation-filler_right"></div>
+        <canvas class="chart__navigation-canvas" width="750" height="80"></canvas>
+        <div id="win" class="chart__navigation-window" style="transform: translateX(0)">
+            <div class="chart__navigation-control_left"></div>
+            <div class="chart__navigation-control_right"></div>
         </div>
     </div>
-    <div class="controls"></div>
+    <div class="chart__controls"></div>
     <div class="chart__select-wrapper">
         <label>Choose dataset</label>
         <select class="chart__select">

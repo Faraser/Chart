@@ -2,23 +2,22 @@ window.oncontextmenu = function() {
     return false;
 };
 
-const canvas = document.getElementById('canvas');
+const canvas = document.querySelector('.chart__main-canvas');
 const ctx = canvas.getContext('2d');
 
-const canvas2 = document.getElementById('canvas2')
+const canvas2 = document.querySelector('.chart__navigation-canvas');
 const ctx2 = canvas2.getContext('2d');
 
 let CANVAS_WIDTH = canvas.width / 2;
 const CANVAS_HEIGTH = canvas.height / 2;
 const plotHeight = canvas.height - 60;
 
-const win = document.getElementById('win');
 const chart = document.querySelector('.chart');
-const winRightButton = document.getElementById('win__right');
-const winLeftButton = document.getElementById('win__left');
-const winFillerLeft = document.getElementById('win__filler-left');
-const winFillerRight = document.getElementById('win__filler-right');
-
+const win = document.querySelector('.chart__navigation-window');
+const winRightButton = document.querySelector('.chart__navigation-control_right');
+const winLeftButton = document.querySelector('.chart__navigation-control_left');
+const winFillerLeft = document.querySelector('.chart__navigation-filler_left');
+const winFillerRight = document.querySelector('.chart__navigation-filler_right');
 
 let isNightTheme = false;
 const switcher = document.querySelector('.chart__switcher');
@@ -60,17 +59,16 @@ select.addEventListener('change', e => {
     createControls(chartData);
 });
 
-
 function createControls(chartData) {
-    const controls = document.querySelector('.controls');
+    const controls = document.querySelector('.chart__controls');
     const icon = document.querySelector('.icon-storage').innerHTML;
     let html = '';
     for (let i = 0; i < chartData.y.length; i++) {
         const name = chartData.y[i].name;
         const color = chartData.y[i].color;
-        html += `<label class="controls__button">
-            <input class="controls__checkbox" type="checkbox" data-index="${i}" checked hidden>
-            <div class="controls__icon" style="fill:${color};color: ${color}">${icon}</div>${name}</label>
+        html += `<label class="chart__controls-button">
+            <input class="chart__controls-checkbox" type="checkbox" data-index="${i}" checked hidden>
+            <div class="chart__controls-icon" style="fill:${color};color: ${color}">${icon}</div>${name}</label>
         `;
     }
     controls.innerHTML = html;
@@ -78,7 +76,7 @@ function createControls(chartData) {
 
 createControls(chartData);
 
-const controls = document.querySelector('.controls');
+const controls = document.querySelector('.chart__controls');
 controls.addEventListener('change', e => {
     const visibleChartCount = chartData.y.reduce((acc, cur) => cur.isVisible ? acc + 1 : acc, 0);
     const shouldVisible = e.target.checked;
