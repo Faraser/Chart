@@ -298,7 +298,7 @@ function render() {
         }
     }
 
-    // TODO: divide render numbers and lines
+    // TODO: divide render by numbers and lines
     drawYAxis(animState, delta);
 
     for (let i = 0; i < visibleYValuesGroup.length; i++) {
