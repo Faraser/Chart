@@ -294,7 +294,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     ctx.textAlign = 'center';
     ctx.font = "24px sans-serif";
 
-    for (let i = 0; i <= steps * 2; i++) {
+    for (let i = 0; i <= steps * 2 + 1; i++) {
         const index = start + pointsPerStep * i;
         if (index > points.length - 1) continue;
         const date = new Date(points[index]);
