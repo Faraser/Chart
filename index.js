@@ -21,7 +21,7 @@ const winFillerRight = document.getElementById('win__filler-right');
 const chartData = prepareData(data);
 
 function prepareData(data) {
-    const rawData = data[4];
+    const rawData = data[0];
 
     const xPoints = rawData.columns[0].slice(1);
     const yData = [];
@@ -222,8 +222,8 @@ function render() {
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
     const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
-    const visibleYValuesGroup = chartData.y
-        .filter(yData => yData.isVisible)
+    const visibleYGroup = chartData.y.filter(yData => yData.isVisible);
+    const visibleYValuesGroup = visibleYGroup
         .map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -294,7 +294,7 @@ function render() {
 
     for (let i = 0; i < visibleYValuesGroup.length; i++) {
         const visibleYValue = visibleYValuesGroup[i];
-        const color = chartData.y[i].color;
+        const color = visibleYGroup[i].color;
         drawPlot(ctx, visibleXValues, visibleYValue, min, max, horizontalOffset, horizontalStepMultiplier, color);
     }
 
