@@ -18,15 +18,7 @@ const winLeftButton = document.getElementById('win__left');
 const winFillerLeft = document.getElementById('win__filler-left');
 const winFillerRight = document.getElementById('win__filler-right');
 
-const points = [];
-const rawData = data[0].columns;
-
-for (let i = 1; i < rawData[0].length; i++) {
-    points.push([rawData[0][i], rawData[1][i]]);
-}
-
 const chartData = prepareData(data);
-console.log(chartData)
 
 function prepareData(data) {
     const rawData = data[0];
@@ -46,8 +38,6 @@ function prepareData(data) {
         y: yData
     }
 }
-
-console.log(points)
 
 let startX = 0;
 let currentTransform = 0;
@@ -420,7 +410,6 @@ function drawWinPlot(ctx, points, maxValue, diffValue, color) {
     ctx.lineWidth = 2;
     ctx.moveTo(0, 0);
     ctx.strokeStyle = color;
-    // ctx.lineJoin = 'round';
     points.forEach((point, i) => {
         const yCoord = ((maxValue - point) / diffValue) * maxHeight + verticalOffset;
         const xCoord = i * horizontalStep;
