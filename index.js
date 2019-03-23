@@ -48,18 +48,17 @@ function createControls(chartData) {
         const name = chartData.y[i].name;
         const color = chartData.y[i].color;
         html += `<label class="controls__button">
-            <div class="controls__icon" style="fill:${color}">${icon}</div>
-            <input type="checkbox" data-index="${i}" hidden>${name}</label>
+            <input class="controls__checkbox" type="checkbox" data-index="${i}" checked hidden>
+            <div class="controls__icon" style="fill:${color};color: ${color}">${icon}</div>${name}</label>
         `;
     }
     controls.innerHTML = html;
 }
 
-createControls(chartData)
+createControls(chartData);
 
 const controls = document.querySelector('.controls');
 controls.addEventListener('change', e => {
-    console.log(e.target.dataset.index, e.target.checked);
     const index = e.target.dataset.index;
     chartData.y[index].isVisible = e.target.checked;
     drawWin(chartData);

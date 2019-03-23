@@ -95,8 +95,7 @@
         display: inline-block;
         line-height: 36px;
         border-radius: 30px;
-        min-width: 70px;
-        padding: 0 10px;
+        padding: 0 8px;
     }
 
     .controls__icon {
@@ -107,7 +106,35 @@
 
         width: 20px;
         height: 20px;
+
+        margin-right: 5px;
     }
+
+    .controls__icon svg {
+        opacity: 0;
+    }
+
+    .controls__icon:after {
+        display: block;
+        content: '';
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid currentColor;
+        box-sizing: border-box;
+        position: absolute;
+        top: 4px;
+        left: 0;
+        opacity: 1;
+    }
+
+    .controls__checkbox:checked + .controls__icon svg {
+        opacity: 1;
+    }
+    .controls__checkbox:checked + .controls__icon:after {
+        opacity: 0;
+    }
+
 </style>
 <div id="chart">
     <canvas id="canvas" width="750" height="680"></canvas>
@@ -120,12 +147,7 @@
             <div id="win__right"></div>
         </div>
     </div>
-    <div class="controls">
-        <label class="controls__button"> <input class="controls__checkbox" type="checkbox" checked
-                                                data-index="0">#0</label>
-        <label class="controls__button"><input class="controls__checkbox" type="checkbox" checked
-                                               data-index="1">#1</label>
-    </div>
+    <div class="controls"></div>
 </div>
 <div class="icon-storage" hidden>
     <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
