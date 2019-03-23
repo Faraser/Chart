@@ -15,6 +15,8 @@ const plotHeight = canvas.height - 60;
 const win = document.getElementById('win');
 const winRightButton = document.getElementById('win__right');
 const winLeftButton = document.getElementById('win__left');
+const winFillerLeft = document.getElementById('win__filler-left');
+const winFillerRight = document.getElementById('win__filler-right');
 
 const points = [];
 const rawData = data[0].columns;
@@ -34,6 +36,11 @@ const maxWinWidth = canvas.width / 2;
 
 let transform = 0;
 
+function updateFillers(transform, winWidth) {
+    winFillerLeft.style.width = `${transform}px`;
+    winFillerRight.style.width = `${CANVAS_WIDTH - winWidth - transform}px`;
+}
+
 win.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
 });
@@ -44,7 +51,8 @@ win.addEventListener('touchmove', e => {
     transform = Math.max(0, currentTransform + diffX);
     transform = Math.min(transform, canvas.width / 2 - winWidth);
 
-    win.style.transform = `translateX(${transform}px)`
+    win.style.transform = `translateX(${transform}px)`;
+    updateFillers(transform, winWidth);
 
     winTransform = transform
 });
@@ -67,6 +75,7 @@ winRightButton.addEventListener('touchmove', e => {
     const diffX = x - startButtonX;
     const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
     win.style.width = Math.ceil(newWidth) + 'px';
+    updateFillers(transform, winWidth);
     winWidth = newWidth;
 });
 
@@ -92,7 +101,9 @@ winLeftButton.addEventListener('touchmove', e => {
     }
 
     win.style.width = Math.ceil(newWidth) + 'px';
-    win.style.transform = `translateX(${Math.ceil(newTransform)}px)`
+    win.style.transform = `translateX(${Math.ceil(newTransform)}px)`;
+    updateFillers(transform, winWidth);
+
     transform = newTransform;
     winWidth = newWidth;
 });
@@ -355,16 +366,17 @@ function drawYAxis(values, animState, delta) {
 
 function drawWinPlot(ctx, points, maxValue, diffValue) {
     const canvas = ctx.canvas;
-    const verticalScale = 50;
+    const verticalPadding = 10;
 
     const horizontalStep = canvas.width / (points.length - 1);
-    const maxHeight = canvas.height - verticalScale;
+    const maxHeight = canvas.height - verticalPadding;
     const verticalOffset = (canvas.height - maxHeight) / 2;
 
     ctx.beginPath();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 2;
     ctx.moveTo(0, 0);
     ctx.strokeStyle = '#8f7fff';
+    // ctx.lineJoin = 'round';
     points.forEach((point, i) => {
         const yCoord = ((maxValue - point[1]) / diffValue) * maxHeight + verticalOffset;
         const xCoord = i * horizontalStep;

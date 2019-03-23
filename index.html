@@ -21,38 +21,72 @@
     }
 
     #canvas2 {
-        height: 100px;
+        height: 40px;
     }
 
     .wrapper {
         position: relative;
-        border-top: 1px solid;
-        border-bottom: 1px solid;
+        height: 40px;
     }
 
     #win {
         position: absolute;
         width: 100px;
-        height: 100px;
+        height: 40px;
         top: 0;
         left: 0;
+        border-top: 1px solid rgb(212, 224, 233);
+        border-bottom: 1px solid rgb(212, 224, 233);
+        box-sizing: border-box;
     }
+
+    #win__filler-left, #win__filler-right {
+        position: absolute;
+        height: 40px;
+        background-color: rgb(243, 247, 249);
+        z-index: -1;
+    }
+
+    #win__filler-left {
+        width: 275px;
+        left: 0;
+    }
+
+    #win__filler-right {
+        width: 0;
+        right: 0;
+    }
+
 
     #win__left, #win__right {
         position: absolute;
         height: 100%;
-        width: 10px;
+        width: 6px;
         right: 0;
-        background-color: rgba(0, 0, 0, .1);
+        background-color: rgb(212, 224, 233);
     }
 
     #win__left {
         left: 0;
     }
+
+    #win__left:before, #win__right:after {
+        position: absolute;
+        width: 20px;
+        content: ' ';
+        display: block;
+        height: 38px;
+    }
+
+    #win__right:after  {
+       left: -14px;
+    }
 </style>
 <canvas id="canvas" width="750" height="600"></canvas>
 <div class="wrapper">
-    <canvas id="canvas2" width="750" height="200"></canvas>
+    <div id="win__filler-left"></div>
+    <div id="win__filler-right"></div>
+    <canvas id="canvas2" width="750" height="80"></canvas>
     <div id="win" style="transform: translateX(0)">
         <div id="win__left"></div>
         <div id="win__right"></div>
