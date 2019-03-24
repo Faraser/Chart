@@ -301,19 +301,32 @@ function render() {
         }
     }
 
+    const { startX, horizontalStep } = calcStartAndStep(ctx, visibleXValues, horizontalOffset, horizontalStepMultiplier);
+
     // TODO: divide render by numbers and lines
     drawYAxis(animState, delta);
 
     for (let i = 0; i < visibleYValuesGroup.length; i++) {
         const visibleYValue = visibleYValuesGroup[i];
         const color = visibleYGroup[i].color;
-        drawPlot(ctx, visibleXValues, visibleYValue, min, max, horizontalOffset, horizontalStepMultiplier, color);
+        drawPlot(ctx, visibleXValues, visibleYValue, min, max, startX, horizontalStep, color);
     }
 
-    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
+    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd, startX, horizontalStep);
 
     drawNavigation(chartData, delta);
     requestAnimationFrame(render);
+}
+
+function calcStartAndStep(ctx, visibleXPoints, horizontalOffset, horizontalStepMultiplier) {
+    const canvas = ctx.canvas;
+    const horizontalPrevStep = (canvas.width) / (visibleXPoints.length - 3);
+    const horizontalNextStep = (canvas.width) / (visibleXPoints.length - 2);
+    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier);
+
+    const startX = horizontalStep * horizontalOffset * -1;
+
+    return { startX, horizontalStep };
 }
 
 function calcXScale(pointsCount, maxSteps) {
@@ -329,7 +342,7 @@ function calcXScale(pointsCount, maxSteps) {
     return scale
 }
 
-function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
+function drawXAxis(ctx, points, start, end, visibleStart, visibleLen, startHorizontal, horizontalStep) {
     const prevStart = start;
     const steps = 5;
     const visibleCount = end - start;
@@ -343,7 +356,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     start = start - start % (pointsPerStep * 2);
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const startX = (start - prevStart) * gHorizontalStep + gStartX;
+    const startX = (start - prevStart) * horizontalStep + startHorizontal;
 
     ctx.textAlign = 'center';
     ctx.font = "24px sans-serif";
@@ -356,32 +369,18 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
         const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
         ctx.fillStyle = getLineColor(opacity);
 
-        const xCoord = startX + i * pointsPerStep * gHorizontalStep;
+        const xCoord = startX + i * pointsPerStep * horizontalStep;
         ctx.fillText(text, xCoord, canvas.height - 10);
     }
 }
 
-var gHorizontalStep;
-var gStartX;
-
 function drawPlot(ctx,
                   visibleXPoints, visibleYValues,
                   min, max,
-                  horizontalOffset, horizontalStepMultiplier,
+                  startX, horizontalStep,
                   color) {
-    const canvas = ctx.canvas;
-
-    const horizontalPrevStep = (canvas.width) / (visibleXPoints.length - 3);
-    const horizontalNextStep = (canvas.width) / (visibleXPoints.length - 2);
-    const horizontalStep = lerp(horizontalPrevStep, horizontalNextStep, horizontalStepMultiplier);
-
     const maxHeight = plotHeight;
-
-    const startX = horizontalStep * horizontalOffset * -1;
     const startY = maxHeight - reverseLerp(min, max, visibleYValues[0]) * maxHeight;
-
-    gHorizontalStep = horizontalStep;
-    gStartX = startX;
 
     ctx.beginPath();
     ctx.lineWidth = 4;
