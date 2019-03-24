@@ -56,7 +56,7 @@ const select = document.querySelector('.chart__select');
 select.addEventListener('change', e => {
     chartData = prepareData(data, e.target.value);
     createControls(chartData);
-    drawWin(chartData, 1, true);
+    drawNavigation(chartData, 1, true);
 });
 
 function createControls(chartData) {
@@ -176,47 +176,49 @@ navWindowLeftControl.addEventListener('touchend', e => {
     beforeDragTransform = transform;
 });
 
-var prevMin, prevMax, prevVisibleChartCount, isNavigationAnimate;
+const drawNavigation = function() {
+    let prevMin, prevMax, prevVisibleChartCount, isNavigationAnimate;
 
-function drawWin(chartData, delta, forceRepaint) {
-    const yDataGroup = chartData.y
-        .filter(yData => yData.isVisible);
+    return function drawNavigation(chartData, delta, forceRepaint) {
+        const yDataGroup = chartData.y
+            .filter(yData => yData.isVisible);
 
-    // Avoid unnecessary repaints
-    if (prevVisibleChartCount === yDataGroup.length && !isNavigationAnimate && !forceRepaint) return;
+        // Avoid unnecessary repaints
+        if (prevVisibleChartCount === yDataGroup.length && !isNavigationAnimate && !forceRepaint) return;
 
-    prevVisibleChartCount = yDataGroup.length;
-
-    let { min, max } = calcYAxes(yDataGroup.map(yData => yData.yPoints));
-
-    if (prevMin === undefined) {
-        prevMin = min;
-        prevMax = max;
         prevVisibleChartCount = yDataGroup.length;
-    }
 
-    if (!isNavigationAnimate && (prevMin !== min || prevMax !== max)) {
-        isNavigationAnimate = true;
-    }
+        let { min, max } = calcYAxes(yDataGroup.map(yData => yData.yPoints));
 
-    if (isNavigationAnimate) {
-        min = lerp(prevMin, min, delta);
-        max = lerp(prevMax, max, delta);
+        if (prevMin === undefined) {
+            prevMin = min;
+            prevMax = max;
+            prevVisibleChartCount = yDataGroup.length;
+        }
 
-    }
+        if (!isNavigationAnimate && (prevMin !== min || prevMax !== max)) {
+            isNavigationAnimate = true;
+        }
 
-    if (isNavigationAnimate && delta >= 1) {
-        prevMin = min;
-        prevMax = max;
-        isNavigationAnimate = false;
-    }
+        if (isNavigationAnimate) {
+            min = lerp(prevMin, min, delta);
+            max = lerp(prevMax, max, delta);
 
-    navCtx.clearRect(0, 0, navCtx.canvas.width, navCtx.canvas.height);
-    for (let i = 0; i < yDataGroup.length; i++) {
-        const yData = yDataGroup[i];
-        drawWinPlot(navCtx, yData.yPoints, max, min, yData.color);
+        }
+
+        if (isNavigationAnimate && delta >= 1) {
+            prevMin = min;
+            prevMax = max;
+            isNavigationAnimate = false;
+        }
+
+        navCtx.clearRect(0, 0, navCtx.canvas.width, navCtx.canvas.height);
+        for (let i = 0; i < yDataGroup.length; i++) {
+            const yData = yDataGroup[i];
+            drawWinPlot(navCtx, yData.yPoints, max, min, yData.color);
+        }
     }
-}
+}();
 
 var prevAxis;
 var animationStartTime = performance.now();
@@ -310,7 +312,7 @@ function render() {
 
     drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd);
 
-    drawWin(chartData, delta);
+    drawNavigation(chartData, delta);
     requestAnimationFrame(render);
 }
 
@@ -329,7 +331,7 @@ function calcXScale(pointsCount, maxSteps) {
 
 function drawXAxis(ctx, points, start, end, visibleStart, visibleLen) {
     const prevStart = start;
-    const steps = 6;
+    const steps = 5;
     const visibleCount = end - start;
 
     const pointsPerStep = Math.max(calcXScale(visibleCount, steps), 2);
@@ -534,15 +536,18 @@ function resize() {
 
     CANVAS_WIDTH = canvas.width / 2;
     maxNavWindowWidth = CANVAS_WIDTH;
+    navWindowWidth = clamp(0, maxNavWindowWidth, navWindowWidth);
     transform = CANVAS_WIDTH - navWindowWidth;
     beforeDragTransform = transform;
+
     navWindow.style.transform = `translateX(${transform}px)`;
+    navWindow.style.width = navWindowWidth + 'px';
+
     updateFillers(transform, navWindowWidth);
-    isNavigationAnimate = true;
+    drawNavigation(chartData, 1, true)
 }
 
 window.addEventListener('resize', resize);
 
 resize();
-
 render();
