@@ -399,11 +399,6 @@ function drawPlot(ctx,
         const yCoord = maxHeight - reverseLerp(min, max, yValue) * maxHeight;
         const xCoord = startX + i * horizontalStep;
         ctx.lineTo(xCoord, yCoord);
-
-        // Debugging output
-        // ctx.fillStyle = 'red';
-        // ctx.fillText(String(new Date(point[0]).getDate()), xCoord, yCoord - 20)
-        // i % 16 === 0 && ctx.fillText(String(new Date(point[0]).getDate()), xCoord, maxHeight)
     }
 
     ctx.stroke();
@@ -415,10 +410,6 @@ function lerp(a, b, t) {
 
 function reverseLerp(a, b, t) {
     return (t - a) / (b - a);
-}
-
-function remap(a, b, c, d, val) {
-    return (d - c) * val / (b - a);
 }
 
 function clamp(min, max, value) {
@@ -456,7 +447,6 @@ function drawYAxis(animState, delta) {
     ctx.strokeStyle = reverseColor;
     ctx.fillStyle = reverseColor;
 
-    // TODO эта штука должна сжиматься, а сейчас поднимается вверх
     let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
     reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
 
