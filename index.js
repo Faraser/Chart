@@ -220,76 +220,52 @@ const drawNavigation = function() {
     }
 }();
 
-var prevAxis;
-var animationStartTime = performance.now();
-var maxAnimationTime = 300;
-var isAnimate = false;
+const maxAnimationTime = 300;
 
-var animState;
+const render = function() {
+    let prevAxis;
+    let animationStartTime = performance.now();
+    let isAnimate = false;
+    let animState;
 
-function render() {
-    const points = chartData.x;
-    const visibleStart = points.length * transform / CANVAS_WIDTH;
-    const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
-    const horizontalOffset = visibleStart % 1;
+    return function() {
+        const points = chartData.x;
+        const visibleStart = points.length * transform / CANVAS_WIDTH;
+        const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
+        const horizontalOffset = visibleStart % 1;
 
-    const visibleEnd = points.length * navWindowWidth / CANVAS_WIDTH;
-    const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
-    const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
+        const visibleEnd = points.length * navWindowWidth / CANVAS_WIDTH;
+        const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
+        const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
-    const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
-    const visibleYGroup = chartData.y.filter(yData => yData.isVisible);
-    const visibleYValuesGroup = visibleYGroup
-        .map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
+        const visibleXValues = points.slice(visibleStartPoint, visibleEndPoint);
+        const visibleYGroup = chartData.y.filter(yData => yData.isVisible);
+        const visibleYValuesGroup = visibleYGroup
+            .map(yData => yData.yPoints.slice(visibleStartPoint, visibleEndPoint));
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let axis = calcYAxes(visibleYValuesGroup);
-    let { min, max } = axis;
+        let axis = calcYAxes(visibleYValuesGroup);
+        let { min, max } = axis;
 
-    if (!animState) {
-        animState = {
-            startMin: axis.min,
-            startMax: axis.max,
-            endMin: axis.min,
-            endMax: axis.max,
-            currentAxis: axis,
-            preventAxis: axis,
-        }
-    }
-
-    if (!prevAxis) prevAxis = axis;
-
-    // Should animate
-    if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
-        animState = {
-            startMin: prevAxis.min,
-            startMax: prevAxis.max,
-            endMin: axis.min,
-            endMax: axis.max,
-            currentAxis: axis,
-            preventAxis: prevAxis,
-        };
-        animationStartTime = performance.now();
-        prevAxis = axis;
-        isAnimate = true;
-    }
-
-    let delta = 1;
-    if (isAnimate) {
-        const diffTime = performance.now() - animationStartTime;
-        delta = Math.min(diffTime / maxAnimationTime, 1);
-        if (delta >= 1) {
-            isAnimate = false;
-        }
-
-        min = lerp(animState.startMin, animState.endMin, delta);
-        max = lerp(animState.startMax, animState.endMax, delta);
-
-        if (prevAxis.min !== axis.min || prevAxis.max !== axis.max) {
+        if (!animState) {
             animState = {
-                startMin: min,
-                startMax: max,
+                startMin: axis.min,
+                startMax: axis.max,
+                endMin: axis.min,
+                endMax: axis.max,
+                currentAxis: axis,
+                preventAxis: axis,
+            }
+        }
+
+        if (!prevAxis) prevAxis = axis;
+
+        // Should animate
+        if ((prevAxis.min !== axis.min || prevAxis.max !== axis.max) && !isAnimate) {
+            animState = {
+                startMin: prevAxis.min,
+                startMax: prevAxis.max,
                 endMin: axis.min,
                 endMax: axis.max,
                 currentAxis: axis,
@@ -299,24 +275,50 @@ function render() {
             prevAxis = axis;
             isAnimate = true;
         }
+
+        let delta = 1;
+        if (isAnimate) {
+            const diffTime = performance.now() - animationStartTime;
+            delta = Math.min(diffTime / maxAnimationTime, 1);
+            if (delta >= 1) {
+                isAnimate = false;
+            }
+
+            min = lerp(animState.startMin, animState.endMin, delta);
+            max = lerp(animState.startMax, animState.endMax, delta);
+
+            if (prevAxis.min !== axis.min || prevAxis.max !== axis.max) {
+                animState = {
+                    startMin: min,
+                    startMax: max,
+                    endMin: axis.min,
+                    endMax: axis.max,
+                    currentAxis: axis,
+                    preventAxis: prevAxis,
+                };
+                animationStartTime = performance.now();
+                prevAxis = axis;
+                isAnimate = true;
+            }
+        }
+
+        const { startX, horizontalStep } = calcStartAndStep(ctx, visibleXValues, horizontalOffset, horizontalStepMultiplier);
+
+        // TODO: divide render by numbers and lines
+        drawYAxis(animState, delta);
+
+        for (let i = 0; i < visibleYValuesGroup.length; i++) {
+            const visibleYValue = visibleYValuesGroup[i];
+            const color = visibleYGroup[i].color;
+            drawPlot(ctx, visibleXValues, visibleYValue, min, max, startX, horizontalStep, color);
+        }
+
+        drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd, startX, horizontalStep);
+
+        drawNavigation(chartData, delta);
+        requestAnimationFrame(render);
     }
-
-    const { startX, horizontalStep } = calcStartAndStep(ctx, visibleXValues, horizontalOffset, horizontalStepMultiplier);
-
-    // TODO: divide render by numbers and lines
-    drawYAxis(animState, delta);
-
-    for (let i = 0; i < visibleYValuesGroup.length; i++) {
-        const visibleYValue = visibleYValuesGroup[i];
-        const color = visibleYGroup[i].color;
-        drawPlot(ctx, visibleXValues, visibleYValue, min, max, startX, horizontalStep, color);
-    }
-
-    drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd, startX, horizontalStep);
-
-    drawNavigation(chartData, delta);
-    requestAnimationFrame(render);
-}
+}();
 
 function calcStartAndStep(ctx, visibleXPoints, horizontalOffset, horizontalStepMultiplier) {
     const canvas = ctx.canvas;
@@ -432,7 +434,7 @@ function drawYAxis(animState, delta) {
     const xPadding = 24;
 
     // Render new
-    const color = getLineColor(delta)
+    const color = getLineColor(delta);
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
