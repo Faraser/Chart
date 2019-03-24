@@ -92,20 +92,16 @@ controls.addEventListener('change', e => {
     chartData.y[index].isVisible = shouldVisible;
 });
 
-let startX = 0;
-let currentTransform = 0;
-let winTransform = 0;
-let winWidth = navWindow.clientWidth;
-const minWinWidth = 30;
-let maxWinWidth = canvas.width / 2;
+const minNavWindowWidth = 30;
+let maxNavWindowWidth = canvas.width / 2;
 
+let navWindowWidth = navWindow.clientWidth;
 let transform = 0;
 
-function updateFillers(transform, winWidth) {
-    navWindowLeftFiller.style.width = `${Math.ceil(transform)}px`;
-    navWindowRightFiller.style.width = `${Math.ceil(CANVAS_WIDTH - winWidth - transform)}px`;
-}
+let startX = 0;
+let beforeDragTransform = 0;
 
+// Handle nav window drag
 navWindow.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
 });
@@ -113,52 +109,56 @@ navWindow.addEventListener('touchstart', e => {
 navWindow.addEventListener('touchmove', e => {
     let x = e.changedTouches[0].clientX;
     const diffX = x - startX;
-    transform = Math.max(0, currentTransform + diffX);
-    transform = Math.min(transform, canvas.width / 2 - winWidth);
+    transform = clamp(0, CANVAS_WIDTH - navWindowWidth, beforeDragTransform + diffX);
 
     navWindow.style.transform = `translateX(${transform}px)`;
-    updateFillers(transform, winWidth);
-
-    winTransform = transform
+    updateFillers(transform, navWindowWidth);
 });
 
 navWindow.addEventListener('touchend', e => {
-    currentTransform = transform;
+    beforeDragTransform = transform;
 });
 
-let startButtonX = 0;
-let prevWinWidth = winWidth;
+function updateFillers(transform, navWindowWidth) {
+    navWindowLeftFiller.style.width = `${Math.ceil(transform)}px`;
+    navWindowRightFiller.style.width = `${Math.ceil(CANVAS_WIDTH - navWindowWidth - transform)}px`;
+}
+
+// Handle nav controls drag
+let startControlX = 0;
+let beforeDragNavWindowWidth = navWindowWidth;
+
 const onTouchStart = e => {
-    startButtonX = e.changedTouches[0].clientX;
-    prevWinWidth = winWidth;
+    startControlX = e.changedTouches[0].clientX;
+    beforeDragNavWindowWidth = navWindowWidth;
 };
 navWindowRightControl.addEventListener('touchstart', onTouchStart);
 navWindowLeftControl.addEventListener('touchstart', onTouchStart);
 navWindowRightControl.addEventListener('touchmove', e => {
     e.stopPropagation();
     let x = e.changedTouches[0].clientX;
-    const diffX = x - startButtonX;
-    const newWidth = clamp(minWinWidth, maxWinWidth - transform, prevWinWidth + diffX);
+    const diffX = x - startControlX;
+    const newWidth = clamp(minNavWindowWidth, maxNavWindowWidth - transform, beforeDragNavWindowWidth + diffX);
     navWindow.style.width = Math.ceil(newWidth) + 'px';
-    updateFillers(transform, winWidth);
-    winWidth = newWidth;
+    updateFillers(transform, navWindowWidth);
+    navWindowWidth = newWidth;
 });
 
 navWindowLeftControl.addEventListener('touchmove', e => {
     e.stopPropagation();
     let x = e.changedTouches[0].clientX;
-    const diffX = startButtonX - x;
+    const diffX = startControlX - x;
 
-    let newWidth = prevWinWidth + diffX;
-    let newTransform = currentTransform - diffX;
+    let newWidth = beforeDragNavWindowWidth + diffX;
+    let newTransform = beforeDragTransform - diffX;
 
-    // Если упираемся в правую плашку
-    if (newWidth <= minWinWidth) {
-        newWidth = minWinWidth;
-        newTransform = Math.min(CANVAS_WIDTH - minWinWidth, newTransform)
+    // if сrossed right side
+    if (newWidth <= minNavWindowWidth) {
+        newWidth = minNavWindowWidth;
+        newTransform = Math.min(CANVAS_WIDTH - minNavWindowWidth, newTransform)
     }
 
-    // Если упираемся в левый угол
+    // if crossed left side
     if (newTransform < 0) {
         newWidth += newTransform;
         newTransform = 0;
@@ -166,14 +166,14 @@ navWindowLeftControl.addEventListener('touchmove', e => {
 
     navWindow.style.width = Math.ceil(newWidth) + 'px';
     navWindow.style.transform = `translateX(${Math.ceil(newTransform)}px)`;
-    updateFillers(transform, winWidth);
+    updateFillers(transform, navWindowWidth);
 
     transform = newTransform;
-    winWidth = newWidth;
+    navWindowWidth = newWidth;
 });
 
 navWindowLeftControl.addEventListener('touchend', e => {
-    currentTransform = transform;
+    beforeDragTransform = transform;
 });
 
 var prevMin, prevMax, prevVisibleChartCount, isNavigationAnimate;
@@ -231,7 +231,7 @@ function render() {
     const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
     const horizontalOffset = visibleStart % 1;
 
-    const visibleEnd = points.length * winWidth / CANVAS_WIDTH;
+    const visibleEnd = points.length * navWindowWidth / CANVAS_WIDTH;
     const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
     const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
@@ -533,12 +533,11 @@ function resize() {
     resizeCanvas(navCanvas);
 
     CANVAS_WIDTH = canvas.width / 2;
-    maxWinWidth = CANVAS_WIDTH;
-    transform = CANVAS_WIDTH - winWidth;
-    winTransform = transform;
-    currentTransform = transform;
+    maxNavWindowWidth = CANVAS_WIDTH;
+    transform = CANVAS_WIDTH - navWindowWidth;
+    beforeDragTransform = transform;
     navWindow.style.transform = `translateX(${transform}px)`;
-    updateFillers(transform, winWidth);
+    updateFillers(transform, navWindowWidth);
     isNavigationAnimate = true;
 }
 
