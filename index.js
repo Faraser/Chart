@@ -110,6 +110,7 @@ navWindow.addEventListener('touchstart', e => {
 });
 
 navWindow.addEventListener('touchmove', e => {
+    e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startX;
     transform = clamp(0, CANVAS_WIDTH - navWindowWidth, beforeDragTransform + diffX);
@@ -139,6 +140,7 @@ navWindowRightControl.addEventListener('touchstart', onTouchStart);
 navWindowLeftControl.addEventListener('touchstart', onTouchStart);
 navWindowRightControl.addEventListener('touchmove', e => {
     e.stopPropagation();
+    e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startControlX;
     const newWidth = clamp(minNavWindowWidth, maxNavWindowWidth - transform, beforeDragNavWindowWidth + diffX);
@@ -149,6 +151,7 @@ navWindowRightControl.addEventListener('touchmove', e => {
 
 navWindowLeftControl.addEventListener('touchmove', e => {
     e.stopPropagation();
+    e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = startControlX - x;
 
