@@ -26,9 +26,12 @@ switcher.addEventListener('click', e => {
     isNightTheme = !isNightTheme;
 });
 
-const getLineColor = (opacity) => isNightTheme ?
+const getTextColor = (opacity) => isNightTheme ?
                                   `rgba(65, 86, 106, ${opacity})` :
                                   `rgba(148,148,152, ${opacity})`;
+const getLineColor = (opacity) => isNightTheme ?
+                                  `rgba(42, 54, 68, ${opacity})` :
+                                  `rgba(242, 244, 245, ${opacity})`;
 
 let chartData = prepareData(data, 0);
 
@@ -369,7 +372,7 @@ function drawXAxis(ctx, points, start, end, visibleStart, visibleLen, startHoriz
         const date = new Date(points[index]);
         const text = monthNames[date.getMonth()] + ' ' + date.getDate();
         const opacity = i % 2 === 1 ? 1 - changeScaleProgress : 1;
-        ctx.fillStyle = getLineColor(opacity);
+        ctx.fillStyle = getTextColor(opacity);
 
         const xCoord = startX + i * pointsPerStep * horizontalStep;
         ctx.fillText(text, xCoord, canvas.height - 10);
@@ -417,7 +420,7 @@ function clamp(min, max, value) {
 }
 
 function drawYAxis(animState, delta) {
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.font = '24px sans-serif';
     ctx.textAlign = 'left';
     const { currentAxis, preventAxis } = animState;
@@ -425,9 +428,8 @@ function drawYAxis(animState, delta) {
     const xPadding = 24;
 
     // Render new
-    const color = getLineColor(delta);
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
+    ctx.strokeStyle = getLineColor(delta);
+    ctx.fillStyle = getTextColor(delta);
     let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
     stepMultiplier = lerp(stepMultiplier, 1, delta);
 
@@ -443,9 +445,8 @@ function drawYAxis(animState, delta) {
 
     // Render prev
     let reverseDelta = 1 - delta;
-    const reverseColor = getLineColor(reverseDelta);
-    ctx.strokeStyle = reverseColor;
-    ctx.fillStyle = reverseColor;
+    ctx.strokeStyle = getLineColor(reverseDelta);
+    ctx.fillStyle = getTextColor(reverseDelta);
 
     let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
     reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
