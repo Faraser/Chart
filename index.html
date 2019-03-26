@@ -56,6 +56,8 @@
         top: 0;
         left: 0;
 
+        display: flex;
+
         box-sizing: border-box;
         width: 90px;
         height: 40px;
@@ -64,14 +66,16 @@
         border-bottom: 1px solid rgb(212, 224, 233);
     }
 
-    .chart_theme_night .chart__navigation-window {
-        border-color: rgb(63, 85, 104);
-    }
-
-    .chart__navigation-filler_left,
-    .chart__navigation-filler_right {
+    .chart__navigation-window:before,
+    .chart__navigation-window:after {
         position: absolute;
+        top: -1px;
 
+        display: block;
+
+        content: '';
+
+        width: 100vw;
         height: 40px;
 
         background-color: rgb(243, 247, 249);
@@ -79,29 +83,30 @@
         opacity: 0.5;
     }
 
-    .chart_theme_night .chart__navigation-filler_left,
-    .chart_theme_night .chart__navigation-filler_right {
+    .chart__navigation-window:before {
+        left: -100vw;
+    }
+
+    .chart__navigation-window:after {
+        right: -100vw;
+    }
+
+    .chart_theme_night .chart__navigation-window {
+        border-color: rgb(63, 85, 104);
+    }
+
+    .chart_theme_night .chart__navigation-window:before,
+    .chart_theme_night .chart__navigation-window:after {
         background-color: rgb(31, 42, 55);
     }
 
-    .chart__navigation-filler_left {
-        left: 0;
-
-        width: 275px;
-    }
-
-    .chart__navigation-filler_right {
-        right: 0;
-
-        width: 0;
+    .chart__navigation-control_main {
+        width: 100%;
     }
 
     .chart__navigation-control_left,
     .chart__navigation-control_right {
-        position: absolute;
-        right: 0;
-
-        width: 6px;
+        min-width: 6px;
         height: 100%;
 
         background-color: rgb(212, 224, 233);
@@ -112,14 +117,9 @@
         background-color: rgb(63, 85, 104);
     }
 
-    .chart__navigation-control_left {
-        left: 0;
-    }
-
     .chart__navigation-control_left:before,
     .chart__navigation-control_right:after {
         position: absolute;
-        left: -7px;
 
         display: block;
 
@@ -127,6 +127,14 @@
         height: 38px;
 
         content: ' ';
+    }
+
+    .chart__navigation-control_left:before {
+        left: -7px;
+    }
+
+    .chart__navigation-control_right:after {
+        right: -7px;
     }
 
     .chart__controls {
@@ -226,11 +234,10 @@
     <h2 class="chart__title">Followers</h2>
     <canvas class="chart__main-canvas" width="750" height="680"></canvas>
     <div class="chart__navigation">
-        <div class="chart__navigation-filler_left"></div>
-        <div class="chart__navigation-filler_right"></div>
         <canvas class="chart__navigation-canvas" width="750" height="80"></canvas>
         <div class="chart__navigation-window" style="transform: translateX(0)">
             <div class="chart__navigation-control_left"></div>
+            <div class="chart__navigation-control_main"></div>
             <div class="chart__navigation-control_right"></div>
         </div>
     </div>

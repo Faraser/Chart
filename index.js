@@ -13,10 +13,9 @@ const plotHeight = canvas.height - 60;
 
 const chart = document.querySelector('.chart');
 const navWindow = document.querySelector('.chart__navigation-window');
+const navWindowMainControl = document.querySelector('.chart__navigation-control_main');
 const navWindowRightControl = document.querySelector('.chart__navigation-control_right');
 const navWindowLeftControl = document.querySelector('.chart__navigation-control_left');
-const navWindowLeftFiller = document.querySelector('.chart__navigation-filler_left');
-const navWindowRightFiller = document.querySelector('.chart__navigation-filler_right');
 
 let isNightTheme = false;
 const switcher = document.querySelector('.chart__switcher');
@@ -105,28 +104,22 @@ let startX = 0;
 let beforeDragTransform = 0;
 
 // Handle nav window drag
-navWindow.addEventListener('touchstart', e => {
+navWindowMainControl.addEventListener('touchstart', e => {
     startX = e.changedTouches[0].clientX;
 });
 
-navWindow.addEventListener('touchmove', e => {
+navWindowMainControl.addEventListener('touchmove', e => {
     e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startX;
     transform = clamp(0, CANVAS_WIDTH - navWindowWidth, beforeDragTransform + diffX);
 
-    navWindow.style.transform = `translateX(${transform}px)`;
-    updateFillers(transform, navWindowWidth);
+    navWindow.style.transform = `translateX(${Math.round(transform)}px)`;
 });
 
-navWindow.addEventListener('touchend', e => {
+navWindowMainControl.addEventListener('touchend', e => {
     beforeDragTransform = transform;
 });
-
-function updateFillers(transform, navWindowWidth) {
-    navWindowLeftFiller.style.width = `${Math.ceil(transform)}px`;
-    navWindowRightFiller.style.width = `${Math.ceil(CANVAS_WIDTH - navWindowWidth - transform)}px`;
-}
 
 // Handle nav controls drag
 let startControlX = 0;
@@ -139,18 +132,15 @@ const onTouchStart = e => {
 navWindowRightControl.addEventListener('touchstart', onTouchStart);
 navWindowLeftControl.addEventListener('touchstart', onTouchStart);
 navWindowRightControl.addEventListener('touchmove', e => {
-    e.stopPropagation();
     e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startControlX;
     const newWidth = clamp(minNavWindowWidth, maxNavWindowWidth - transform, beforeDragNavWindowWidth + diffX);
-    navWindow.style.width = Math.ceil(newWidth) + 'px';
-    updateFillers(transform, navWindowWidth);
+    navWindow.style.width = Math.round(newWidth) + 'px';
     navWindowWidth = newWidth;
 });
 
 navWindowLeftControl.addEventListener('touchmove', e => {
-    e.stopPropagation();
     e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = startControlX - x;
@@ -170,9 +160,12 @@ navWindowLeftControl.addEventListener('touchmove', e => {
         newTransform = 0;
     }
 
-    navWindow.style.width = Math.ceil(newWidth) + 'px';
-    navWindow.style.transform = `translateX(${Math.ceil(newTransform)}px)`;
-    updateFillers(transform, navWindowWidth);
+    // Avoid floating pixel size for width and transform
+    const roundedWidth = Math.round(newWidth);
+    const roundedTransform = (newTransform + newWidth) - roundedWidth;
+
+    navWindow.style.width = Math.round(newWidth) + 'px';
+    navWindow.style.transform = `translateX(${roundedTransform}px)`;
 
     transform = newTransform;
     navWindowWidth = newWidth;
@@ -535,10 +528,9 @@ function resize() {
     transform = CANVAS_WIDTH - navWindowWidth;
     beforeDragTransform = transform;
 
-    navWindow.style.transform = `translateX(${transform}px)`;
-    navWindow.style.width = navWindowWidth + 'px';
+    navWindow.style.transform = `translateX(${Math.round(transform)}px)`;
+    navWindow.style.width = Math.round(navWindowWidth) + 'px';
 
-    updateFillers(transform, navWindowWidth);
     drawNavigation(chartData, 1, true)
 }
 
