@@ -5,10 +5,12 @@ window.oncontextmenu = function() {
 const canvas = document.querySelector('.chart__main-canvas');
 const ctx = canvas.getContext('2d');
 
+const nav = document.querySelector('.chart__navigation');
 const navCanvas = document.querySelector('.chart__navigation-canvas');
 const navCtx = navCanvas.getContext('2d');
 
 let CANVAS_WIDTH = canvas.width / 2;
+let NAVIGATION_WIDTH = nav.getBoundingClientRect().width / 2;
 const plotHeight = canvas.height - 60;
 
 const chart = document.querySelector('.chart');
@@ -95,7 +97,7 @@ controls.addEventListener('change', e => {
 });
 
 const minNavWindowWidth = 30;
-let maxNavWindowWidth = canvas.width / 2;
+let maxNavWindowWidth = NAVIGATION_WIDTH;
 
 let navWindowWidth = navWindow.clientWidth;
 let transform = 0;
@@ -112,7 +114,7 @@ navWindowMainControl.addEventListener('touchmove', e => {
     e.preventDefault();
     let x = e.changedTouches[0].clientX;
     const diffX = x - startX;
-    transform = clamp(0, CANVAS_WIDTH - navWindowWidth, beforeDragTransform + diffX);
+    transform = clamp(0, NAVIGATION_WIDTH - navWindowWidth, beforeDragTransform + diffX);
 
     navWindow.style.transform = `translateX(${Math.round(transform)}px)`;
 });
@@ -151,7 +153,7 @@ navWindowLeftControl.addEventListener('touchmove', e => {
     // if сrossed right side
     if (newWidth <= minNavWindowWidth) {
         newWidth = minNavWindowWidth;
-        newTransform = Math.min(CANVAS_WIDTH - minNavWindowWidth, newTransform)
+        newTransform = Math.min(NAVIGATION_WIDTH - minNavWindowWidth, newTransform)
     }
 
     // if crossed left side
@@ -229,11 +231,11 @@ const render = function() {
 
     return function() {
         const points = chartData.x;
-        const visibleStart = points.length * transform / CANVAS_WIDTH;
+        const visibleStart = points.length * transform / NAVIGATION_WIDTH;
         const visibleStartPoint = Math.max(Math.floor(visibleStart), 0);
         const horizontalOffset = visibleStart % 1;
 
-        const visibleEnd = points.length * navWindowWidth / CANVAS_WIDTH;
+        const visibleEnd = points.length * navWindowWidth / NAVIGATION_WIDTH;
         const visibleEndPoint = Math.min(visibleStartPoint + Math.ceil(visibleEnd), points.length);
         const horizontalStepMultiplier = visibleEnd >= points.length ? 1 : visibleEnd % 1;
 
@@ -511,21 +513,20 @@ function calcYAxes(visibleYValuesGroup) {
     };
 }
 
-function resizeCanvas(canvas) {
-    const newWidth = window.innerWidth;
-
+function resizeCanvas(canvas, newWidth) {
     canvas.width = newWidth * 2;
     canvas.style.width = newWidth + 'px';
 }
 
 function resize() {
-    resizeCanvas(canvas);
-    resizeCanvas(navCanvas);
+    resizeCanvas(canvas, window.innerWidth);
+    resizeCanvas(navCanvas, nav.getBoundingClientRect().width);
 
     CANVAS_WIDTH = canvas.width / 2;
-    maxNavWindowWidth = CANVAS_WIDTH;
+    NAVIGATION_WIDTH = navCanvas.width / 2;
+    maxNavWindowWidth = NAVIGATION_WIDTH;
     navWindowWidth = clamp(0, maxNavWindowWidth, navWindowWidth);
-    transform = CANVAS_WIDTH - navWindowWidth;
+    transform = NAVIGATION_WIDTH - navWindowWidth;
     beforeDragTransform = transform;
 
     navWindow.style.transform = `translateX(${Math.round(transform)}px)`;

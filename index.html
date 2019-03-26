@@ -49,6 +49,8 @@
 
         height: 40px;
         margin-top: 12px;
+        margin-left: 12px;
+        margin-right: 12px;
     }
 
     .chart__navigation-window {
@@ -81,6 +83,7 @@
         background-color: rgb(243, 247, 249);
 
         opacity: 0.5;
+        z-index: -1;
     }
 
     .chart__navigation-window:before {
@@ -123,18 +126,18 @@
 
         display: block;
 
-        width: 20px;
+        width: 25px;
         height: 38px;
 
         content: ' ';
     }
 
     .chart__navigation-control_left:before {
-        left: -7px;
+        left: -10px;
     }
 
     .chart__navigation-control_right:after {
-        right: -7px;
+        right: -10px;
     }
 
     .chart__controls {
