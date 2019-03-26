@@ -305,8 +305,7 @@ const render = function() {
 
         const { startX, horizontalStep } = calcStartAndStep(ctx, visibleXValues, horizontalOffset, horizontalStepMultiplier);
 
-        // TODO: divide render by numbers and lines
-        drawYAxis(animState, delta);
+        drawYLines(animState, delta);
 
         for (let i = 0; i < visibleYValuesGroup.length; i++) {
             const visibleYValue = visibleYValuesGroup[i];
@@ -314,6 +313,7 @@ const render = function() {
             drawPlot(ctx, visibleXValues, visibleYValue, min, max, startX, horizontalStep, color);
         }
 
+        drawYLabels(animState, delta);
         drawXAxis(ctx, points, visibleStartPoint, visibleEndPoint, visibleStart, visibleEnd, startX, horizontalStep);
 
         drawNavigation(chartData, delta);
@@ -417,17 +417,14 @@ function clamp(min, max, value) {
     return Math.min(Math.max(value, min), max);
 }
 
-function drawYAxis(animState, delta) {
+function drawYLines(animState, delta) {
     ctx.lineWidth = 2;
-    ctx.font = '24px sans-serif';
-    ctx.textAlign = 'left';
     const { currentAxis, preventAxis } = animState;
     const step = plotHeight / currentAxis.steps;
     const xPadding = 24;
 
     // Render new
     ctx.strokeStyle = getLineColor(delta);
-    ctx.fillStyle = getTextColor(delta);
     let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
     stepMultiplier = lerp(stepMultiplier, 1, delta);
 
@@ -436,7 +433,6 @@ function drawYAxis(animState, delta) {
 
         ctx.beginPath();
         ctx.moveTo(xPadding, yCoord);
-        ctx.fillText(currentAxis.min + currentAxis.stepValue * i, 20, yCoord - 10);
         ctx.lineTo(canvas.width - xPadding, yCoord);
         ctx.stroke();
     }
@@ -444,7 +440,6 @@ function drawYAxis(animState, delta) {
     // Render prev
     let reverseDelta = 1 - delta;
     ctx.strokeStyle = getLineColor(reverseDelta);
-    ctx.fillStyle = getTextColor(reverseDelta);
 
     let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
     reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
@@ -454,9 +449,39 @@ function drawYAxis(animState, delta) {
 
         ctx.beginPath();
         ctx.moveTo(xPadding, yCoord);
-        ctx.fillText(preventAxis.min + preventAxis.stepValue * i, 20, yCoord - 10);
         ctx.lineTo(canvas.width - xPadding, yCoord);
         ctx.stroke();
+    }
+}
+
+function drawYLabels(animState, delta) {
+    ctx.font = '24px sans-serif';
+    ctx.textAlign = 'left';
+    const { currentAxis, preventAxis } = animState;
+    const step = plotHeight / currentAxis.steps;
+
+    // Render new
+    ctx.fillStyle = getTextColor(delta);
+    let stepMultiplier = (animState.endMax - animState.endMin) / (animState.startMax - animState.startMin);
+    stepMultiplier = lerp(stepMultiplier, 1, delta);
+
+    for (let i = 0; i < currentAxis.steps; i++) {
+        let yCoord = plotHeight - step * i * stepMultiplier;
+
+        ctx.fillText(currentAxis.min + currentAxis.stepValue * i, 20, yCoord - 10);
+    }
+
+    // Render prev
+    let reverseDelta = 1 - delta;
+    ctx.fillStyle = getTextColor(reverseDelta);
+
+    let reversedStepMultiplier = (animState.startMax - animState.startMin) / (animState.endMax - animState.endMin);
+    reversedStepMultiplier = lerp(1, reversedStepMultiplier, delta);
+
+    for (let i = 0; i < preventAxis.steps; i++) {
+        let yCoord = plotHeight - step * i * reversedStepMultiplier;
+
+        ctx.fillText(preventAxis.min + preventAxis.stepValue * i, 20, yCoord - 10);
     }
 }
 
